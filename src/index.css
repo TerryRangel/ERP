@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* Sobrescribe el contenedor root únicamente para el login */
+body:has(.login-container) #root {
+  width: 100% !important;
+  max-width: 100% !important;
+  border-inline: none !important;
+  margin: 0 !important;
+}
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;
