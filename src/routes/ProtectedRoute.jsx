@@ -1,8 +1,18 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet} from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute() {
-  // Simulamos la verificación del token en localStorage
-  const token = localStorage.getItem('token');
-  
-  return token ? <Outlet /> : <Navigate to="/login" replace />;
+  const { isAuthenticated, loading } = useAuth();
+
+  console.log("Auth:", { loading, isAuthenticated });
+
+  if (loading) return <div>Cargando...</div>;
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  return <Outlet />;
+
 }
+
