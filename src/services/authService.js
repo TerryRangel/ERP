@@ -1,29 +1,46 @@
-// src/services/authService.js
-import axios from 'axios';
+import api from './api';
 
-// Obtiene la variable de entorno configurada
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 export const authService = {
   login: async (usuario, password) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
+      const response = await api.post('/auth/login', {
         usuario,
         password
       });
 
+      const data = response.data;
+
       // Si la respuesta contiene el token, lo guardamos en localStorage
-      if (response.data && response.data.token) {
-        localStorage.setItem('token', response.data.token);
+      if (data && data.token) {
+        localStorage.setItem('token', data.token);
       }
 
-      return response.data;
+      return data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Error al iniciar sesión');
+      throw new Error(
+        error.response?.data?.message || 'Error al iniciar sesión'
+      );
     }
   },
 
+  // Obtener el usuario actual 
+  getMe : async () => {
+    try {
+      const response = await api.get('/auth/me');
+      return response.data;
+    } catch (error) {
+      throw new Error("No Autorizado");
+    }
+  },
+
+  //Logout 
   logout: () => {
     localStorage.removeItem('token');
+  },
+
+  isAuthenticated: () => {
+    const token = localStorage.getItem('token');
+    return !!token;
   }
 };
