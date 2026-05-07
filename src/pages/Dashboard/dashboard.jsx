@@ -1,10 +1,10 @@
 import { useDashboard } from "../../hooks/useDashboard";
-import { useAuth } from "../../context/AuthContext";
+import { authService } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const { data, loading } = useDashboard();
-  const { logout } = useAuth();
+  const { logout } = authService;
   const navigate = useNavigate();
 
   const handleLogout = () => {
