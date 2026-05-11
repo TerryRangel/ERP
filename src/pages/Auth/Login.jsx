@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
   const [usuario, setUsuario] = useState('');
@@ -9,6 +9,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const { login } = useAuth();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -16,7 +18,7 @@ export default function Login() {
 
     try {
       // Usamos el usuario "proyecto" y el password "Hello2U"
-      await authService.login(usuario, password);
+      await login(usuario, password);
       navigate('/dashboard');
     } catch (err) {
       setError(err.message);
