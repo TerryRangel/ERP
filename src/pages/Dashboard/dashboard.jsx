@@ -1,380 +1,235 @@
 import { useDashboard } from "../../hooks/useDashboard";
 
+import texturaTelaNaranja from "../../assets/textura-tela-naranja.png";
+import texturaTelaRosa from "../../assets/textura-tela-rosa.png";
+import texturaTelaVerde from "../../assets/textura-tela-verde.png";
+import texturaLino from "../../assets/textura-lino.png";
+
+import texturaMadera from "../../assets/textura-madera.jpg";
+import texturaMaderaRosa from "../../assets/textura-madera-rosa.png";
+import texturaMaderaVerde from "../../assets/textura-madera-verde.png";
+import texturaMaderaAbeto from "../../assets/textura-madera-abeto.png";
+
+import iconoGrupo from "../../assets/icono-grupo.png";
+import iconoLibreta from "../../assets/icono-libreta.png";
+import iconoCasa from "../../assets/icono-casa.png";
+import iconoEstambre from "../../assets/icono-estambre.png";
+
 const metrics = [
   {
-    label: "Total Usuarios",
-    key: "totalUsers",
-    icon: "users",
-    gradient: "linear-gradient(135deg, #f9a8c9 0%, #e879a0 100%)",
-    glow: "rgba(232,121,160,0.35)",
-    emoji: "👥",
-    accent: "#c0386b",
+    key: "totalUsers", label: "Total Usuarios", sublabel: "Usuarios Totales",
+    texturaInterior: texturaTelaNaranja, texturaMarco: texturaMaderaAbeto,
+    colorText: "#fff", 
+    imageIcon: iconoGrupo,
   },
   {
-    label: "Total Clientes",
-    key: "totalClients",
-    icon: "address-book",
-    gradient: "linear-gradient(135deg, #ffc8dd 0%, #ff85a1 100%)",
-    glow: "rgba(255,133,161,0.35)",
-    emoji: "💌",
-    accent: "#d63460",
+    key: "totalClients", label: "Total Clientes", sublabel: "Clientes Registrados",
+    texturaInterior: texturaTelaRosa, texturaMarco: texturaMaderaRosa,
+    colorText: "#fff", 
+    imageIcon: iconoLibreta,
   },
   {
-    label: "Proveedores",
-    key: "totalSuppliers",
-    icon: "building-store",
-    gradient: "linear-gradient(135deg, #ffb3d1 0%, #ff6b9e 100%)",
-    glow: "rgba(255,107,158,0.35)",
-    emoji: "🏪",
-    accent: "#c0386b",
+    key: "totalSuppliers", label: "Proveedores", sublabel: "Proveedores Activos",
+    texturaInterior: texturaMadera, texturaMarco: texturaMadera,
+    colorText: "#2a1d11", 
+    imageIcon: iconoCasa,
   },
   {
-    label: "Productos Tejidos",
-    key: "totalProducts",
-    icon: "needle-thread",
-    gradient: "linear-gradient(135deg, #ffd6e8 0%, #ffadd2 100%)",
-    glow: "rgba(255,173,210,0.4)",
-    emoji: "🧶",
-    accent: "#d4789e",
-  },
+    key: "totalProducts", label: "Productos Tejidos", sublabel: "Productos de Crochet",
+    texturaInterior: texturaTelaVerde, texturaMarco: texturaMaderaVerde,
+    colorText: "#1b2e21", 
+    imageIcon: iconoEstambre,
+  }
 ];
 
-function MetricCard({ label, value, icon, gradient, glow, emoji, accent, loading }) {
+function MetricCard({ metric, value }) {
   return (
-    <div
-      style={{
-        background: "#fff",
-        border: "1.5px solid rgba(232,120,160,0.15)",
-        borderRadius: "20px",
-        padding: "0",
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        overflow: "hidden",
-        transition: "transform 0.25s ease, box-shadow 0.25s ease",
-        cursor: "default",
-        boxShadow: "0 2px 16px rgba(232,120,160,0.08)",
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.transform = "translateY(-4px) rotate(0.3deg)";
-        e.currentTarget.style.boxShadow = `0 16px 40px ${glow}`;
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.transform = "translateY(0) rotate(0)";
-        e.currentTarget.style.boxShadow = "0 2px 16px rgba(232,120,160,0.08)";
-      }}
-    >
-      {/* Gradient top band */}
+    <div style={{
+      padding: "8px", 
+      backgroundImage: `url(${metric.texturaMarco})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      borderRadius: "16px",
+      boxShadow: "inset 0 1px 3px rgba(255,255,255,0.4), inset 0 -2px 5px rgba(0,0,0,0.5), 0 8px 15px rgba(0,0,0,0.2)",
+    }}>
       <div style={{
-        height: "6px",
-        background: gradient,
-        width: "100%",
-      }} />
-
-      <div style={{ padding: "20px 22px 22px" }}>
-        {/* Top row */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "16px" }}>
-          <span style={{
-            fontSize: "11px",
-            fontWeight: 800,
-            color: "#d4789e",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
+        backgroundImage: `url(${metric.texturaInterior})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        borderRadius: "8px",
+        boxShadow: "inset 0 3px 8px rgba(0,0,0,0.4)",
+        padding: "10px 16px",
+        height: "auto",
+        display: "flex", flexDirection: "column", justifyContent: "center",
+        color: metric.colorText,
+        textShadow: metric.colorText === "#fff" ? "0 1px 3px rgba(0,0,0,0.4)" : "none" 
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: "14px", fontWeight: 900 }}>{metric.label}</div>
+            <div style={{ fontSize: "11px", opacity: 0.9, fontWeight: 700 }}>{metric.sublabel}</div>
+          </div>
+          <div style={{ 
+            fontSize: "26px",
+            fontWeight: 900, 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "10px"
           }}>
-            {label}
-          </span>
-          <div style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "12px",
-            background: gradient,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "20px",
-            boxShadow: `0 4px 14px ${glow}`,
-            border: "2px solid rgba(255,255,255,0.8)",
-          }}>
-            {emoji}
+            <img 
+                src={metric.imageIcon} 
+                alt={metric.label} 
+                style={{ 
+                    width: "35px",
+                    height: "auto", 
+                    filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))",
+                }} 
+            />
+            {value ?? 0}
           </div>
         </div>
-
-        {/* Value */}
-        {loading ? (
-          <div style={{
-            height: "44px",
-            width: "80px",
-            borderRadius: "8px",
-            background: "linear-gradient(90deg, #ffe4ef, #ffd1e8, #ffe4ef)",
-            backgroundSize: "200% 100%",
-            animation: "shimmer 1.5s linear infinite",
-          }} />
-        ) : (
-          <div>
-            <span style={{
-              fontSize: "40px",
-              fontWeight: 900,
-              letterSpacing: "-0.03em",
-              lineHeight: 1,
-              background: gradient,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}>
-              {value ?? 0}
-            </span>
-          </div>
-        )}
-
-        {/* Decorative bottom */}
-        <div style={{
-          marginTop: "14px",
-          height: "3px",
-          borderRadius: "99px",
-          background: `linear-gradient(90deg, ${glow}, transparent)`,
-        }} />
+        <svg viewBox="0 0 100 20" style={{ width: "100%", height: "18px", marginTop: "4px", stroke: metric.colorText, strokeWidth: 2.5, fill: "none", strokeLinecap: "round" }}>
+            <path d="M0 15 Q 15 5, 25 12 T 45 10 T 65 5 T 85 15 T 100 8" opacity="0.7"/>
+        </svg>
       </div>
     </div>
   );
 }
 
-function ActivityRow({ loading, index }) {
-  if (loading) {
-    return (
+function ActivityRow({ icon, iconColor, title, date, label, btnText, noBorder }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", padding: "16px 12px",
+      borderBottom: noBorder ? "none" : "1px solid rgba(139, 98, 66, 0.2)"
+    }}>
       <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "14px",
-        padding: "14px 0",
-        borderBottom: "1px dashed rgba(232,120,160,0.15)",
-        animation: "fadeIn 0.3s ease forwards",
-        animationDelay: `${index * 0.08}s`,
-        opacity: 0,
+        width: "38px", height: "38px", borderRadius: "50%",
+        background: `radial-gradient(circle at 30% 30%, ${iconColor}, #333)`, 
+        display: "flex", alignItems: "center", justifyContent: "center",
+        color: "#fff", fontSize: "20px", boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+        marginRight: "16px"
       }}>
-        <div style={{
-          width: "38px", height: "38px", borderRadius: "10px",
-          background: "linear-gradient(135deg, #ffe4ef, #ffd1e8)",
-          flexShrink: 0,
-        }} />
-        <div style={{ flex: 1 }}>
-          <div style={{ width: "45%", height: "12px", borderRadius: "6px", background: "linear-gradient(90deg, #ffe4ef, #ffd1e8)", marginBottom: "7px" }} />
-          <div style={{ width: "28%", height: "10px", borderRadius: "6px", background: "#fff0f6" }} />
-        </div>
-        <div style={{ width: "64px", height: "10px", borderRadius: "6px", background: "#fff0f6" }} />
+        <i className={`ti ti-${icon}`} />
       </div>
-    );
-  }
-  return null;
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: "15px", fontWeight: 900, color: "#2a1d11" }}>{title}</div>
+        <div style={{ fontSize: "12px", color: "#5c4028", fontWeight: 700 }}>{date}</div>
+      </div>
+      <div style={{ width: "140px", fontSize: "15px", fontWeight: 800, color: "#2a1d11" }}>{label}</div>
+      <button style={{
+        backgroundImage: `url(${texturaMadera})`,
+        backgroundSize: "cover",
+        border: "1px solid rgba(0,0,0,0.2)", padding: "8px 16px", borderRadius: "8px",
+        color: "#2a1d11", fontWeight: 900, fontSize: "13px", cursor: "pointer",
+        boxShadow: "inset 0 1px 2px rgba(255,255,255,0.4), 0 3px 6px rgba(0,0,0,0.2)"
+      }}>
+        {btnText}
+      </button>
+    </div>
+  );
 }
 
 export default function Dashboard() {
-  const { data, loading } = useDashboard();
+  const { data } = useDashboard();
 
   return (
-    <div style={{ fontFamily: "'Nunito', sans-serif", maxWidth: "1200px" }}>
+    <div style={{ 
+      fontFamily: "'Nunito', sans-serif", 
+      maxWidth: "800px",
+      margin: "0 auto",
+      paddingTop: "10px"
+    }}>
 
-      {/* Page header */}
-      <div style={{ marginBottom: "36px", position: "relative" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-          <div style={{ display: "flex", gap: "4px" }}>
-            {["🌸", "✿", "🌷"].map((f, i) => (
-              <span key={i} style={{
-                fontSize: "14px",
-                animation: `float 2.5s ease-in-out infinite`,
-                animationDelay: `${i * 0.4}s`,
-                display: "inline-block",
-              }}>{f}</span>
-            ))}
-          </div>
-          <span style={{
-            fontSize: "11px",
-            fontWeight: 800,
-            color: "#d4789e",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            background: "linear-gradient(135deg, #f9a8c9, #e879a0)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-          }}>
-            Vista general
-          </span>
+      <div style={{ marginBottom: "28px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+          <span style={{ fontSize: "18px", filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.2))" }}>🌸</span>
+          <span style={{ fontSize: "15px", fontWeight: 800, color: "#4a3320" }}>Vista general / Dashboard</span>
         </div>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: "16px" }}>
-          <h1 style={{
-            margin: 0,
-            fontSize: "38px",
-            fontWeight: 900,
-            letterSpacing: "-0.03em",
-            lineHeight: 1,
-            background: "linear-gradient(135deg, #8b2252 0%, #c0386b 40%, #e879a0 80%, #f9a8c9 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-          }}>
-            Dashboard
-          </h1>
-        </div>
-        <p style={{ margin: "6px 0 0", fontSize: "14px", color: "#c084a0", fontWeight: 500 }}>
-          Bienvenida de vuelta — aquí tienes el resumen de hoy ✨
+        <h1 style={{ margin: 0, fontSize: "42px", fontWeight: 900, color: "#2a1d11", letterSpacing: "-0.02em" }}>
+          Dashboard
+        </h1>
+        <p style={{ margin: "8px 0 0", fontSize: "16px", color: "#4a3320", fontWeight: 700 }}>
+          ¡Hola de nuevo, Ana! Aquí tienes el resumen de hoy, hilado a la perfección.
         </p>
-
-        {/* Decorative line */}
-        <div style={{
-          marginTop: "20px",
-          height: "2px",
-          borderRadius: "99px",
-          background: "linear-gradient(90deg, #f9a8c9, #e879a0, #ffd6e8, transparent)",
-          maxWidth: "320px",
-        }} />
       </div>
 
-      {/* Metric cards */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        gap: "18px",
-        marginBottom: "36px",
-      }}>
-        {metrics.map((m) => (
-          <MetricCard
-            key={m.key}
-            label={m.label}
-            value={data?.[m.key]}
-            icon={m.icon}
-            gradient={m.gradient}
-            glow={m.glow}
-            emoji={m.emoji}
-            accent={m.accent}
-            loading={loading}
-          />
-        ))}
-      </div>
+      <div style={{ display: "flex", gap: "24px", marginBottom: "32px", alignItems: "stretch" }}>
+        
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", flex: 1 }}>
+          {metrics.map((m) => (
+            <MetricCard key={m.key} metric={m} value={data?.[m.key] || m.value} />
+          ))}
+        </div>
 
-      {/* Activity panel */}
-      <div style={{
-        background: "#fff",
-        border: "1.5px solid rgba(232,120,160,0.18)",
-        borderRadius: "20px",
-        overflow: "hidden",
-        boxShadow: "0 4px 24px rgba(232,120,160,0.08)",
-      }}>
-        {/* Panel header */}
         <div style={{
-          padding: "22px 24px 18px",
-          borderBottom: "1.5px dashed rgba(232,120,160,0.15)",
-          background: "linear-gradient(135deg, #fff8fb 0%, #fff 100%)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          width: "110px", padding: "6px",
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url(${texturaMaderaAbeto})`,
+          backgroundSize: "cover",
+          borderRadius: "16px",
+          boxShadow: "inset 0 1px 3px rgba(255,255,255,0.3), inset 0 -2px 5px rgba(0,0,0,0.6), 0 8px 15px rgba(0,0,0,0.2)",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div style={{
-              width: "38px",
-              height: "38px",
-              borderRadius: "10px",
-              background: "linear-gradient(135deg, #fce4f0, #f9a8c9)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "18px",
-              border: "1.5px solid rgba(232,120,160,0.2)",
-            }}>
-              📋
-            </div>
-            <div>
-              <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 800, color: "#8b2252" }}>
-                Actividad reciente
-              </h2>
-              <p style={{ margin: 0, fontSize: "12px", color: "#d4789e", fontWeight: 500 }}>
-                Últimas acciones registradas
-              </p>
-            </div>
+          <div style={{
+              backgroundImage: `url(${texturaLino})`, 
+              backgroundSize: "cover",
+              borderRadius: "8px",
+              boxShadow: "inset 0 3px 8px rgba(0,0,0,0.3)",
+              padding: "12px 8px", height: "100%",
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              color: "#2a1d11", textAlign: "center"
+          }}>
+            <div style={{ fontSize: "13px", fontWeight: 900, marginBottom: "8px", lineHeight: 1.1 }}>Pedidos<br/>Pendientes</div>
+            <div style={{ fontSize: "16px", fontWeight: 800 }}>Total: 15</div>
+            <span style={{ fontSize: "24px", filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.3))", marginTop: "8px" }}>🧺</span>
           </div>
-          <button style={{
-            padding: "8px 16px",
-            borderRadius: "10px",
-            background: "linear-gradient(135deg, #fff0f6, #ffe4ef)",
-            border: "1.5px solid rgba(232,120,160,0.25)",
-            color: "#c084a0",
-            fontSize: "12px",
-            fontWeight: 700,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            transition: "all 0.2s ease",
-          }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = "linear-gradient(135deg, #fce4f0, #f9a8c9)";
-              e.currentTarget.style.color = "#8b2252";
-              e.currentTarget.style.transform = "translateY(-1px)";
-              e.currentTarget.style.boxShadow = "0 4px 14px rgba(232,120,160,0.25)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = "linear-gradient(135deg, #fff0f6, #ffe4ef)";
-              e.currentTarget.style.color = "#c084a0";
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          >
-            <i className="ti ti-refresh" style={{ fontSize: "13px" }} />
-            Ver todo
-          </button>
-        </div>
-
-        <div style={{ padding: "4px 24px 8px" }}>
-          {loading ? (
-            [0, 1, 2].map(i => <ActivityRow key={i} loading={true} index={i} />)
-          ) : (
-            <div style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "48px 0",
-              gap: "12px",
-            }}>
-              <div style={{
-                width: "64px",
-                height: "64px",
-                borderRadius: "18px",
-                background: "linear-gradient(135deg, #fce4f0, #ffe4f3)",
-                border: "1.5px solid rgba(232,120,160,0.2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "28px",
-              }}>
-                🌸
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <p style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: "#c084a0" }}>
-                  Sin actividad registrada
-                </p>
-                <p style={{ margin: "3px 0 0", fontSize: "12px", color: "#d4789e", opacity: 0.7 }}>
-                  Las acciones aparecerán aquí
-                </p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
-      <style>{`
-        @keyframes shimmer {
-          0% { background-position: 0% 0%; }
-          100% { background-position: 200% 0%; }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-4px); }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(6px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+      <div style={{
+        backgroundImage: `url(${texturaMadera})`,
+        backgroundSize: "cover",
+        padding: "10px",
+        borderRadius: "16px",
+        boxShadow: "0 8px 20px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.4)"
+      }}>
+        <div style={{
+          backgroundImage: `url(${texturaLino})`, 
+          backgroundSize: "cover",
+          borderRadius: "10px",
+          overflow: "hidden",
+          boxShadow: "inset 0 2px 8px rgba(0,0,0,0.3)"
+        }}>
+          <div style={{
+            backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${texturaMadera})`,
+            backgroundSize: "cover",
+            padding: "16px 24px",
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            color: "#fff",
+            borderBottom: "3px solid #2a1d11",
+            textShadow: "0 1px 2px rgba(0,0,0,0.5)"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "18px", fontWeight: 900 }}>
+              Actividad Reciente <i className="ti ti-list-details" />
+            </div>
+            <button style={{
+              backgroundImage: `url(${texturaMadera})`,
+              backgroundSize: "cover",
+              border: "1px solid rgba(0,0,0,0.3)", padding: "8px 20px", borderRadius: "8px",
+              color: "#2a1d11", fontWeight: 900, fontSize: "14px", cursor: "pointer",
+              boxShadow: "inset 0 1px 2px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.2)",
+              textShadow: "none"
+            }}>
+              Ver todo
+            </button>
+          </div>
 
-      <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet" />
-      <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+          <div style={{ padding: "8px 16px" }}>
+            <ActivityRow icon="check" iconColor="#4ade80" title="Nuevo usuario registrado: Pedro G." date="22 april, 2023, 08:24" label="Pedro G." btnText="Ver Detalles" />
+            <ActivityRow icon="info-small" iconColor="#60a5fa" title="Pedido completado #1234" date="23 april, 2023, 08:24" label="#1234" btnText="Ver Detalles" />
+            <ActivityRow icon="building-store" iconColor="#f43f5e" title="Proveedor actualizado: Hilos Finos" date="23 april, 2023, 08:24" label="Hilos Finos" btnText="Archivar" noBorder />
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

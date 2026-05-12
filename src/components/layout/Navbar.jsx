@@ -1,176 +1,86 @@
 import { useAuth } from "../../context/AuthContext";
+import texturaMadera from "../../assets/textura-madera.jpg";
+import iconoGanchillo from "../../assets/icono-ganchillo.png";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const initial = (user?.usuario?.charAt(0) || "U").toUpperCase();
 
   return (
     <header style={{
-      height: "68px",
-      background: "rgba(255,255,255,0.75)",
-      backdropFilter: "blur(20px)",
-      WebkitBackdropFilter: "blur(20px)",
-      borderBottom: "1.5px solid rgba(232,120,160,0.18)",
+      height: "64px",
+      margin: "24px 32px 0 32px",
+      borderRadius: "16px",
+      backgroundColor: "#d4b595",
+      backgroundImage: `url(${texturaMadera})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      boxShadow: "inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.4), 0 6px 12px rgba(0,0,0,0.15)",
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      padding: "0 28px",
+      padding: "0 24px",
       fontFamily: "'Nunito', sans-serif",
-      boxShadow: "0 2px 20px rgba(232,120,160,0.08)",
-      position: "relative",
-      zIndex: 10,
+      position: "sticky",
+      top: "24px",
+      zIndex: 100,
     }}>
-      {/* Decorative top line */}
-      <div style={{
-        position: "absolute",
-        top: 0, left: 0, right: 0,
-        height: "2px",
-        background: "linear-gradient(90deg, #f9a8c9, #e879a0, #ff6eb4, #ffd6e8, #e879a0)",
-        backgroundSize: "200% 100%",
-        animation: "shimmer 3s linear infinite",
-      }} />
-
-      {/* Left: breadcrumb */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <div style={{
-          width: "30px",
-          height: "30px",
-          borderRadius: "8px",
-          background: "linear-gradient(135deg, #fce4f0 0%, #f9a8c9 100%)",
-          border: "1px solid rgba(232,120,160,0.3)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "14px",
-        }}>
-          <i className="ti ti-layout-dashboard" style={{ color: "#d6548a", fontSize: "13px" }} />
-        </div>
-        <span style={{ fontSize: "13px", color: "#c084a0", fontWeight: 600, letterSpacing: "0.01em" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <span style={{ fontSize: "18px", color: "#3d2a18", fontWeight: 800, textShadow: "0 1px 1px rgba(255,255,255,0.4)" }}>
           Panel de Administración
         </span>
+        <i className="ti ti-menu-2" style={{ color: "#3d2a18", fontSize: "20px", cursor: "pointer" }} />
       </div>
 
-      {/* Right: actions */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        {/* Bell */}
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
         <button style={{
-          width: "36px",
-          height: "36px",
-          borderRadius: "10px",
-          background: "linear-gradient(135deg, #fff0f6 0%, #ffe4ef 100%)",
-          border: "1.5px solid rgba(232,120,160,0.25)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          color: "#e879a0",
-          fontSize: "15px",
-          transition: "all 0.2s ease",
-          boxShadow: "0 2px 8px rgba(232,120,160,0.1)",
-        }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = "linear-gradient(135deg, #fce4f0 0%, #f9a8c9 100%)";
-            e.currentTarget.style.transform = "translateY(-1px)";
-            e.currentTarget.style.boxShadow = "0 4px 16px rgba(232,120,160,0.3)";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = "linear-gradient(135deg, #fff0f6 0%, #ffe4ef 100%)";
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 2px 8px rgba(232,120,160,0.1)";
-          }}
-          aria-label="Notificaciones"
-        >
-          <i className="ti ti-bell" />
+          width: "38px", height: "38px", borderRadius: "10px",
+          background: "linear-gradient(to bottom, #e37e7e, #c44747)",
+          border: "none", cursor: "pointer", color: "#fff", fontSize: "18px",
+          boxShadow: "inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.2)",
+        }} aria-label="Notificaciones">
+          <i className="ti ti-bell-filled" />
         </button>
 
-        {/* Divider */}
-        <div style={{ width: "1px", height: "26px", background: "rgba(232,120,160,0.2)" }} />
-
-        {/* User info */}
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: "13px", fontWeight: 700, color: "#4a1535", lineHeight: 1.2 }}>
-            {user?.usuario || "Usuario"}
-          </div>
-          <div style={{
-            fontSize: "10px",
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            background: "linear-gradient(90deg, #e879a0, #f9a8c9)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-          }}>
-            Administradora
-          </div>
-        </div>
-
-        {/* Avatar */}
         <div style={{
-          width: "38px",
-          height: "38px",
-          borderRadius: "50%",
-          background: "linear-gradient(135deg, #f9a8c9 0%, #e879a0 50%, #c0386b 100%)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "14px",
-          fontWeight: 800,
-          color: "#fff",
-          boxShadow: "0 4px 14px rgba(232,121,160,0.4), 0 0 0 3px rgba(249,168,201,0.3)",
-          flexShrink: 0,
-          border: "2px solid #fff",
+          display: "flex", alignItems: "center", gap: "12px",
+          padding: "4px 4px 4px 16px", borderRadius: "24px",
+          backgroundImage: `url(${texturaMadera})`,
+          backgroundSize: "cover",
+          boxShadow: "inset 0 2px 4px rgba(0,0,0,0.2), 0 2px 4px rgba(255,255,255,0.2)",
+          border: "1px solid rgba(0,0,0,0.1)"
         }}>
-          {initial}
+          <div style={{ textAlign: "right", lineHeight: 1.1 }}>
+            <div style={{ fontSize: "11px", fontWeight: 900, color: "#3d2a18" }}>Administradora</div>
+            <div style={{ fontSize: "13px", fontWeight: 700, color: "#4a3320" }}>{user?.usuario || "Ana"}</div>
+          </div>
+          <img src="https://i.pravatar.cc/150?img=5" alt="Perfil Ana" style={{
+            width: "32px", height: "32px", borderRadius: "50%",
+            border: "2px solid #5c4028", objectFit: "cover"
+          }} />
         </div>
 
-        {/* Divider */}
-        <div style={{ width: "1px", height: "26px", background: "rgba(232,120,160,0.2)" }} />
-
-        {/* Logout */}
-        <button
-          onClick={logout}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "8px 16px",
-            borderRadius: "10px",
-            background: "linear-gradient(135deg, #fff0f6, #ffe4ef)",
-            border: "1.5px solid rgba(232,120,160,0.25)",
-            color: "#c084a0",
-            fontSize: "13px",
-            fontWeight: 600,
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-            boxShadow: "0 2px 8px rgba(232,120,160,0.08)",
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = "linear-gradient(135deg, #ffe4ef, #ffc7de)";
-            e.currentTarget.style.borderColor = "rgba(232,120,160,0.5)";
-            e.currentTarget.style.color = "#c0386b";
-            e.currentTarget.style.transform = "translateY(-1px)";
-            e.currentTarget.style.boxShadow = "0 4px 16px rgba(232,120,160,0.25)";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = "linear-gradient(135deg, #fff0f6, #ffe4ef)";
-            e.currentTarget.style.borderColor = "rgba(232,120,160,0.25)";
-            e.currentTarget.style.color = "#c084a0";
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 2px 8px rgba(232,120,160,0.08)";
-          }}
-        >
-          <i className="ti ti-logout" style={{ fontSize: "14px" }} />
+        <button onClick={logout} style={{
+          display: "flex", alignItems: "center", gap: "10px",
+          padding: "8px 16px", borderRadius: "12px",
+          backgroundImage: `url(${texturaMadera})`,
+          backgroundSize: "cover",
+          border: "1px solid rgba(0,0,0,0.1)",
+          cursor: "pointer", color: "#3d2a18", fontSize: "14px", fontWeight: 900,
+          boxShadow: "inset 0 2px 4px rgba(255,255,255,0.2), 0 3px 6px rgba(0,0,0,0.1)",
+        }}>
+          <img 
+            src={iconoGanchillo} 
+            alt="Salir" 
+            style={{ 
+                width: "24px", 
+                height: "auto", 
+                transform: "rotate(-15deg)",
+                filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))"
+            }} 
+          />
           Salir
         </button>
       </div>
-
-      <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet" />
-      <style>{`
-        @keyframes shimmer {
-          0% { background-position: 0% 0%; }
-          100% { background-position: 200% 0%; }
-        }
-      `}</style>
     </header>
   );
 }
