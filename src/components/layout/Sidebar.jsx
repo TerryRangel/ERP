@@ -1,4 +1,6 @@
 import { NavLink } from "react-router-dom";
+import texturaMadera from "../../assets/textura-madera.jpg";
+import texturaLino from "../../assets/textura-lino.png";
 
 const menuItems = [
   { name: "Dashboard", path: "/dashboard", icon: "chart-bar" },
@@ -10,178 +12,81 @@ const menuItems = [
 export default function Sidebar() {
   return (
     <aside style={{
-      width: "250px",
-      minWidth: "250px",
-      background: "linear-gradient(180deg, #fff0f6 0%, #ffe8f2 40%, #ffd9ec 100%)",
-      borderRight: "1.5px solid rgba(232,120,160,0.2)",
-      display: "flex",
-      flexDirection: "column",
-      height: "100%",
-      fontFamily: "'Nunito', sans-serif",
-      position: "relative",
-      overflow: "hidden",
-      boxShadow: "4px 0 24px rgba(232,120,160,0.08)",
-      zIndex: 2,
+      width: "260px", minWidth: "260px",
+      backgroundImage: `url(${texturaLino})`,
+      backgroundSize: "cover",
+      backgroundPosition: "left center",
+      borderRight: "2px solid #8b6242",
+      boxShadow: "5px 0 20px rgba(0,0,0,0.15)",
+      display: "flex", flexDirection: "column",
+      fontFamily: "'Nunito', sans-serif", zIndex: 2,
     }}>
-      {/* Background floral decoration */}
       <div style={{
-        position: "absolute",
-        bottom: "80px",
-        right: "-30px",
-        width: "160px",
-        height: "160px",
-        borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(249,168,201,0.3) 0%, transparent 70%)",
-        pointerEvents: "none",
-      }} />
-      <div style={{
-        position: "absolute",
-        top: "100px",
-        left: "-40px",
-        width: "120px",
-        height: "120px",
-        borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(255,182,213,0.25) 0%, transparent 70%)",
-        pointerEvents: "none",
-      }} />
-
-      {/* Logo */}
-      <div style={{
-        height: "72px",
-        display: "flex",
-        alignItems: "center",
-        padding: "0 20px",
-        borderBottom: "1.5px solid rgba(232,120,160,0.15)",
-        gap: "12px",
-        position: "relative",
+        padding: "36px 20px 24px", display: "flex", flexDirection: "column", 
+        alignItems: "center", gap: "10px", textShadow: "0 1px 1px rgba(255,255,255,0.4)"
       }}>
         <div style={{
-          width: "40px",
-          height: "40px",
-          background: "linear-gradient(135deg, #f9a8c9 0%, #e879a0 50%, #c0386b 100%)",
-          borderRadius: "12px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "20px",
-          boxShadow: "0 6px 20px rgba(232,121,160,0.45), 0 0 0 4px rgba(249,168,201,0.3)",
-          border: "2px solid rgba(255,255,255,0.6)",
+          width: "64px", height: "64px", borderRadius: "12px",
+          background: "linear-gradient(135deg, #f3a6b6, #de7a90)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: "36px", 
+          boxShadow: "inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.2)",
+          marginBottom: "4px"
         }}>🌸</div>
-        <div>
-          <p style={{ margin: 0, fontSize: "15px", fontWeight: 800, color: "#8b2252", letterSpacing: "-0.02em" }}>
-            Crochet ERP
-          </p>
-          <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "#d4789e", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-            Admin Panel
-          </p>
-        </div>
+        <h2 style={{ margin: 0, fontSize: "22px", fontWeight: 900, color: "#2a1d11" }}>Crochet ERP</h2>
+        <p style={{ margin: 0, fontSize: "12px", fontWeight: 800, color: "#4a3320" }}>Panel de Administración</p>
       </div>
 
-      {/* Nav label */}
-      <div style={{ padding: "20px 20px 6px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ flex: 1, height: "1px", background: "linear-gradient(90deg, rgba(232,120,160,0.4), transparent)" }} />
-          <span style={{ fontSize: "10px", fontWeight: 800, color: "#d4789e", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-            Menú
-          </span>
-          <div style={{ flex: 1, height: "1px", background: "linear-gradient(90deg, transparent, rgba(232,120,160,0.4))" }} />
-        </div>
-      </div>
-
-      {/* Nav items */}
-      <nav style={{ flex: 1, padding: "8px 12px", display: "flex", flexDirection: "column", gap: "4px" }}>
+      <nav style={{ padding: "0 20px", display: "flex", flexDirection: "column", gap: "12px", flex: 1 }}>
         {menuItems.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
             style={({ isActive }) => ({
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              padding: "10px 14px",
-              borderRadius: "12px",
-              textDecoration: "none",
-              fontSize: "14px",
-              fontWeight: isActive ? 800 : 600,
-              transition: "all 0.2s ease",
-              color: isActive ? "#fff" : "#c084a0",
-              background: isActive
-                ? "linear-gradient(135deg, #f472b6 0%, #e879a0 50%, #db2777 100%)"
-                : "transparent",
-              border: isActive ? "1px solid rgba(255,255,255,0.3)" : "1px solid transparent",
-              boxShadow: isActive ? "0 4px 18px rgba(232,121,160,0.45), inset 0 1px 0 rgba(255,255,255,0.2)" : "none",
-              transform: isActive ? "translateX(2px)" : "translateX(0)",
+              display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", borderRadius: "12px",
+              textDecoration: "none", fontSize: "15px", fontWeight: 800,
+              color: isActive ? "#2a1d11" : "#4a3320",
+              backgroundImage: isActive 
+                ? `linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url(${texturaMadera})` 
+                : `linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)), url(${texturaMadera})`,
+              backgroundSize: "cover",
+              boxShadow: isActive
+                ? "inset 0 3px 6px rgba(0,0,0,0.3)"
+                : "inset 0 1px 3px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2), 0 4px 6px rgba(0,0,0,0.1)",
             })}
           >
-            {({ isActive }) => (
-              <>
-                <span style={{
-                  width: "32px",
-                  height: "32px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: "9px",
-                  background: isActive
-                    ? "rgba(255,255,255,0.2)"
-                    : "linear-gradient(135deg, #fff0f6 0%, #ffe4ef 100%)",
-                  color: isActive ? "#fff" : "#e879a0",
-                  fontSize: "15px",
-                  border: isActive ? "1px solid rgba(255,255,255,0.3)" : "1px solid rgba(232,120,160,0.2)",
-                  boxShadow: isActive ? "none" : "0 2px 6px rgba(232,120,160,0.1)",
-                  transition: "all 0.2s ease",
-                  flexShrink: 0,
-                }}>
-                  <i className={`ti ti-${item.icon}`} aria-hidden="true" />
-                </span>
-                <span style={{ flex: 1 }}>{item.name}</span>
-                {isActive && (
-                  <span style={{ fontSize: "14px" }}>✦</span>
-                )}
-              </>
-            )}
+            <i className={`ti ti-${item.icon}`} style={{ fontSize: "20px" }} />
+            <span>{item.name}</span>
           </NavLink>
         ))}
       </nav>
 
-      {/* Decorative flowers row */}
-      <div style={{
-        textAlign: "center",
-        fontSize: "16px",
-        padding: "4px 0 2px",
-        letterSpacing: "4px",
-        opacity: 0.5,
-        color: "#e879a0",
-      }}>
-        ✿ ✾ ✿
-      </div>
+      <div style={{ padding: "24px 20px" }}>
+         <div style={{ textAlign: "center", marginBottom: "16px", color: "#2a1d11", fontWeight: 900, fontSize: "14px" }}>Status</div>
+         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 16px", marginBottom: "20px" }}>
+            <div style={{ fontSize: "28px", filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.25))" }}>🧶</div>
+            <div style={{ fontSize: "28px", filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.25))" }}>🧵</div>
+            <div style={{
+              width: "18px", height: "18px", borderRadius: "50%",
+              background: "radial-gradient(circle at 30% 30%, #86efac, #22c55e)",
+              boxShadow: "inset 0 -2px 4px rgba(0,0,0,0.4), 0 0 12px rgba(34,197,94,0.6)",
+              border: "2px solid #5c4028"
+            }} />
+         </div>
+         <div style={{ textAlign: "center", fontSize: "13px", color: "#166534", fontWeight: 900, marginBottom: "24px" }}>
+           Estado: Perfecto
+         </div>
 
-      {/* Bottom status */}
-      <div style={{
-        margin: "10px 12px 16px",
-        padding: "12px 14px",
-        borderRadius: "12px",
-        background: "linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,240,250,0.9) 100%)",
-        border: "1.5px solid rgba(232,120,160,0.2)",
-        boxShadow: "0 2px 12px rgba(232,120,160,0.1)",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{
-            width: "8px",
-            height: "8px",
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, #4ade80, #22c55e)",
-            boxShadow: "0 0 8px rgba(74,222,128,0.6)",
-            flexShrink: 0,
-          }} />
-          <span style={{ fontSize: "12px", color: "#c084a0", fontWeight: 600 }}>Sistema activo</span>
-          <span style={{ marginLeft: "auto", fontSize: "12px" }}>🌷</span>
-        </div>
+         <button style={{
+           width: "100%", padding: "14px", borderRadius: "12px",
+           backgroundImage: `url(${texturaMadera})`,
+           backgroundSize: "cover",
+           border: "none", cursor: "pointer", color: "#2a1d11", fontSize: "15px", fontWeight: 900,
+           boxShadow: "inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.2)",
+         }}>
+           Crear Nuevo...
+         </button>
       </div>
-
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet" />
     </aside>
   );
 }
