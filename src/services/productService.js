@@ -1,4 +1,3 @@
-// src/services/productService.js
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 const getAuthHeader = () => {
@@ -7,7 +6,7 @@ const getAuthHeader = () => {
 };
 
 export const productService = {
-  // Obtener productos (tu backend los devuelve en una propiedad llamada 'items')
+  // Obtener productos
   getAll: async () => {
     const response = await fetch(`${API_URL}/products`, {
       method: 'GET',
@@ -18,14 +17,14 @@ export const productService = {
     return data.items || []; // Extraemos solo los productos del objeto de respuesta
   },
 
-  // Crear producto (enviamos JSON puro como pide tu backend)
+  // Crear producto
   create: async (productData) => {
     const payload = {
-      sku: productData.sku, // Requerido por el schema
-      nombre: productData.nombre, // Requerido por el schema
+      sku: productData.sku,
+      nombre: productData.nombre,
       descripcion: productData.descripcion || '',
       categoria: productData.categoria || '',
-      precioVenta: Number(productData.precioVenta || 0), // Nombre exacto del campo
+      precioVenta: Number(productData.precioVenta || 0),
       stock: Number(productData.stock || 0),
       activo: true
     };

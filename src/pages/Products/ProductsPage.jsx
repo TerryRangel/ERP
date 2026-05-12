@@ -5,7 +5,7 @@ export default function ProductsPage() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
 
-  // Estados del formulario (SKU es obligatorio en tu backend)
+  // Estados del formulario
   const [sku, setSku] = useState('');
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
