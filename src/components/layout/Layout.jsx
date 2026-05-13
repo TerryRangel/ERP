@@ -1,10 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
-
-//import texturaLino from "../../assets/textura-lino.png";
-import texturaLinoDiseno from "../../assets/textura-lino-diseño.png";
-import texturaLinoDiseñoHerramientas from "../../assets/textura-lino-diseño-herramientas.png";
+import fondo from "../../assets/fondo.png";
 
 export default function Layout() {
   return (
@@ -13,8 +10,10 @@ export default function Layout() {
       height: "100vh",
       width: "100vw",
       overflow: "hidden",
+      backgroundColor: "var(--bg)", 
       position: "relative",
     }}>
+    
       <Sidebar />
 
       <div style={{ 
@@ -23,16 +22,15 @@ export default function Layout() {
         flex: 1, 
         overflow: "hidden", 
         position: "relative",
-        backgroundImage: `url(${texturaLinoDiseñoHerramientas})`,
+        backgroundImage: `url(${fondo})`, // Fondo texturizado
         backgroundSize: "cover"
+      
       }}>
+        
         <div style={{
           position: "absolute",
           top: 0, left: 0, right: 0, bottom: 0,
-          backgroundImage: `url(${texturaLinoDiseno})`,
-          backgroundSize: "100% 100%",
-          backgroundPosition: "center",
-          opacity: 0.15,
+          backgroundColor: "rgba(255, 255, 255, 0.2)", // Brillo sutil sobre el crema
           pointerEvents: "none",
           zIndex: 0,
         }} />
@@ -42,11 +40,14 @@ export default function Layout() {
         <main style={{
           flex: 1,
           overflowY: "auto",
-          padding: "24px 32px",
+          padding: "40px 48px", // Aumentamos el padding para que el contenido respire
           position: "relative",
           zIndex: 1,
         }}>
-          <Outlet />
+          {/* Contenedor con ancho máximo para mantener el orden visual */}
+          <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

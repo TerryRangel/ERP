@@ -1,91 +1,159 @@
 import { NavLink } from "react-router-dom";
-import texturaMadera from "../../assets/textura-madera.jpg";
-import texturaLino from "../../assets/textura-lino.png";
+import { useAuth } from "../../context/AuthContext";
 
 const menuItems = [
   { name: "Dashboard", path: "/dashboard", icon: "chart-bar" },
+  { name: "Productos", path: "/products", icon: "shopping-bag" },
   { name: "Proveedores", path: "/suppliers", icon: "building-store" },
   { name: "Auditoría", path: "/audit", icon: "clipboard-list" },
   { name: "Usuarios", path: "/users", icon: "users" },
 ];
 
 export default function Sidebar() {
+  const { logout } = useAuth();
+
   return (
     <aside style={{
-      width: "260px", minWidth: "260px",
-      backgroundImage: `url(${texturaLino})`,
-      backgroundSize: "cover",
-      backgroundPosition: "left center",
-      borderRight: "2px solid #8b6242",
-      boxShadow: "5px 0 20px rgba(0,0,0,0.15)",
-      display: "flex", flexDirection: "column",
-      fontFamily: "'Nunito', sans-serif", zIndex: 2,
+      width: "260px",
+      minWidth: "260px",
+      backgroundColor: "#FFFFFF", // Fondo blanco limpio
+      borderRight: "1px solid #E8E4DE", // Borde sutil color lino
+      display: "flex", 
+      flexDirection: "column",
+      fontFamily: "'Inter', sans-serif", // Tipografía moderna
+      zIndex: 10,
     }}>
+      {/* Sección del Logo - Basado en la estética de la imagen */}
       <div style={{
-        padding: "36px 20px 24px", display: "flex", flexDirection: "column", 
-        alignItems: "center", gap: "10px", textShadow: "0 1px 1px rgba(255,255,255,0.4)"
+        padding: "48px 24px 32px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        gap: "4px"
       }}>
         <div style={{
-          width: "64px", height: "64px", borderRadius: "12px",
-          background: "linear-gradient(135deg, #f3a6b6, #de7a90)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: "36px", 
-          boxShadow: "inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.2)",
-          marginBottom: "4px"
-        }}>🌸</div>
-        <h2 style={{ margin: 0, fontSize: "22px", fontWeight: 900, color: "#2a1d11" }}>Crochet ERP</h2>
-        <p style={{ margin: 0, fontSize: "12px", fontWeight: 800, color: "#4a3320" }}>Panel de Administración</p>
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          color: "#4A453E"
+        }}>
+          <span style={{ fontSize: "24px" }}>🧶</span>
+          <h2 style={{ 
+            margin: 0, 
+            fontSize: "22px", 
+            fontWeight: "500", 
+            fontFamily: "'Lora', serif", // Toque artesanal
+            letterSpacing: "0.5px"
+          }}>
+            Tejidos
+          </h2>
+        </div>
+        <p style={{ 
+          margin: 0, 
+          fontSize: "10px", 
+          fontWeight: "600", 
+          color: "#8C867E", 
+          textTransform: "uppercase",
+          letterSpacing: "1.5px",
+          paddingLeft: "36px"
+        }}>
+          Hecho a mano
+        </p>
       </div>
 
-      <nav style={{ padding: "0 20px", display: "flex", flexDirection: "column", gap: "12px", flex: 1 }}>
+      {/* Navegación - Estilo Minimalista */}
+      <nav style={{ 
+        padding: "0 16px", 
+        display: "flex", 
+        flexDirection: "column", 
+        gap: "4px", 
+        flex: 1 
+      }}>
         {menuItems.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
             style={({ isActive }) => ({
-              display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", borderRadius: "12px",
-              textDecoration: "none", fontSize: "15px", fontWeight: 800,
-              color: isActive ? "#2a1d11" : "#4a3320",
-              backgroundImage: isActive 
-                ? `linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url(${texturaMadera})` 
-                : `linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)), url(${texturaMadera})`,
-              backgroundSize: "cover",
-              boxShadow: isActive
-                ? "inset 0 3px 6px rgba(0,0,0,0.3)"
-                : "inset 0 1px 3px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2), 0 4px 6px rgba(0,0,0,0.1)",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              padding: "12px 16px",
+              borderRadius: "8px",
+              textDecoration: "none",
+              fontSize: "14px",
+              fontWeight: isActive ? "600" : "400",
+              color: isActive ? "#8B9467" : "#4A453E", // Verde Oliva si está activo
+              backgroundColor: isActive ? "#F4F6EE" : "transparent", // Fondo suave oliva
+              transition: "all 0.2s ease",
             })}
           >
-            <i className={`ti ti-${item.icon}`} style={{ fontSize: "20px" }} />
+            <i className={`ti ti-${item.icon}`} style={{ fontSize: "18px" }} />
             <span>{item.name}</span>
           </NavLink>
         ))}
       </nav>
 
-      <div style={{ padding: "24px 20px" }}>
-         <div style={{ textAlign: "center", marginBottom: "16px", color: "#2a1d11", fontWeight: 900, fontSize: "14px" }}>Status</div>
-         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 16px", marginBottom: "20px" }}>
-            <div style={{ fontSize: "28px", filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.25))" }}>🧶</div>
-            <div style={{ fontSize: "28px", filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.25))" }}>🧵</div>
+      {/* Sección Inferior - Estado y Acción */}
+      <div style={{ 
+        padding: "24px 16px", 
+        borderTop: "1px solid #F9F7F2",
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px"
+      }}>
+        {/* Indicador de Status Minimalista */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "12px 16px",
+          backgroundColor: "#F9F7F2",
+          borderRadius: "12px"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <div style={{
-              width: "18px", height: "18px", borderRadius: "50%",
-              background: "radial-gradient(circle at 30% 30%, #86efac, #22c55e)",
-              boxShadow: "inset 0 -2px 4px rgba(0,0,0,0.4), 0 0 12px rgba(34,197,94,0.6)",
-              border: "2px solid #5c4028"
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              backgroundColor: "#86efac",
+              boxShadow: "0 0 8px rgba(134, 239, 172, 0.6)"
             }} />
-         </div>
-         <div style={{ textAlign: "center", fontSize: "13px", color: "#166534", fontWeight: 900, marginBottom: "24px" }}>
-           Estado: Perfecto
-         </div>
+            <span style={{ fontSize: "12px", fontWeight: "600", color: "#4A453E" }}>Sistema Online</span>
+          </div>
+          <span style={{ fontSize: "16px" }}>🧵</span>
+        </div>
 
-         <button style={{
-           width: "100%", padding: "14px", borderRadius: "12px",
-           backgroundImage: `url(${texturaMadera})`,
-           backgroundSize: "cover",
-           border: "none", cursor: "pointer", color: "#2a1d11", fontSize: "15px", fontWeight: 900,
-           boxShadow: "inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.2)",
-         }}>
-           Crear Nuevo...
-         </button>
+        {/* Botón de Salida Minimalista */}
+        <button 
+          onClick={logout}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #E8E4DE",
+            backgroundColor: "transparent",
+            color: "#8C867E",
+            fontSize: "13px",
+            fontWeight: "600",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px"
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = "#F9F7F2";
+            e.currentTarget.style.color = "#4A453E";
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.backgroundColor = "transparent";
+            e.currentTarget.style.color = "#8C867E";
+          }}
+        >
+          <i className="ti ti-logout" />
+          Cerrar sesión
+        </button>
       </div>
     </aside>
   );
