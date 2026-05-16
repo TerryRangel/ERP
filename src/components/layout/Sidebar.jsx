@@ -1,16 +1,25 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-
-const menuItems = [
-  { name: "Dashboard", path: "/dashboard", icon: "chart-bar" },
-  { name: "Productos", path: "/products", icon: "shopping-bag" },
-  { name: "Proveedores", path: "/suppliers", icon: "building-store" },
-  { name: "Auditoría", path: "/audit", icon: "clipboard-list" },
-  { name: "Usuarios", path: "/users", icon: "users" },
-];
+import { Can } from "../../components/can.jsx";
+import "bootstrap-icons/font/bootstrap-icons.css"; // <-- Importamos Bootstrap Icons
 
 export default function Sidebar() {
   const { logout } = useAuth();
+
+  // Función auxiliar para no repetir los estilos de NavLink en cada renglón
+  const linkStyle = ({ isActive }) => ({
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "12px 16px",
+    borderRadius: "8px",
+    textDecoration: "none",
+    fontSize: "14px",
+    fontWeight: isActive ? "600" : "400",
+    color: isActive ? "#8B9467" : "#4A453E", // Verde Oliva si está activo
+    backgroundColor: isActive ? "#F4F6EE" : "transparent", // Fondo suave oliva
+    transition: "all 0.2s ease",
+  });
 
   return (
     <aside style={{
@@ -23,7 +32,7 @@ export default function Sidebar() {
       fontFamily: "'Inter', sans-serif", // Tipografía moderna
       zIndex: 10,
     }}>
-      {/* Sección del Logo - Basado en la estética de la imagen */}
+      {/* Sección del Logo */}
       <div style={{
         padding: "48px 24px 32px",
         display: "flex",
@@ -61,7 +70,7 @@ export default function Sidebar() {
         </p>
       </div>
 
-      {/* Navegación - Estilo Minimalista */}
+      {/* Navegación - ESCRITA MANUALMENTE CON BOOTSTRAP ICONS */}
       <nav style={{ 
         padding: "0 16px", 
         display: "flex", 
@@ -69,28 +78,47 @@ export default function Sidebar() {
         gap: "4px", 
         flex: 1 
       }}>
-        {menuItems.map((item) => (
-          <NavLink
-            key={item.name}
-            to={item.path}
-            style={({ isActive }) => ({
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              padding: "12px 16px",
-              borderRadius: "8px",
-              textDecoration: "none",
-              fontSize: "14px",
-              fontWeight: isActive ? "600" : "400",
-              color: isActive ? "#8B9467" : "#4A453E", // Verde Oliva si está activo
-              backgroundColor: isActive ? "#F4F6EE" : "transparent", // Fondo suave oliva
-              transition: "all 0.2s ease",
-            })}
-          >
-            <i className={`ti ti-${item.icon}`} style={{ fontSize: "18px" }} />
-            <span>{item.name}</span>
+        
+        {/* 1. DASHBOARD */}
+        <Can I="dashboard:read">
+          <NavLink to="/dashboard" style={linkStyle}>
+            <i className="bi bi-speedometer2" style={{ fontSize: "18px" }} />
+            <span>Dashboard</span>
           </NavLink>
-        ))}
+        </Can>
+
+        {/* 2. PRODUCTOS */}
+        <Can I="products:read">
+          <NavLink to="/products" style={linkStyle}>
+            <i className="bi bi-bag-fill" style={{ fontSize: "18px" }} />
+            <span>Productos</span>
+          </NavLink>
+        </Can>
+
+        {/* 3. PROVEEDORES */}
+        <Can I="suppliers:read">
+          <NavLink to="/suppliers" style={linkStyle}>
+            <i className="bi bi-shop" style={{ fontSize: "18px" }} />
+            <span>Proveedores</span>
+          </NavLink>
+        </Can>
+
+        {/* 4. AUDITORÍA */}
+        <Can I="audit:read">
+          <NavLink to="/audit" style={linkStyle}>
+            <i className="bi bi-clipboard2-data-fill" style={{ fontSize: "18px" }} />
+            <span>Auditoría</span>
+          </NavLink>
+        </Can>
+
+        {/* 5. USUARIOS (Sección Crítica) */}
+        <Can I="users:read">
+          <NavLink to="/users" style={linkStyle}>
+            <i className="bi bi-people-fill" style={{ fontSize: "18px" }} />
+            <span>Usuarios</span>
+          </NavLink>
+        </Can>
+
       </nav>
 
       {/* Sección Inferior - Estado y Acción */}
@@ -151,7 +179,7 @@ export default function Sidebar() {
             e.currentTarget.style.color = "#8C867E";
           }}
         >
-          <i className="ti ti-logout" />
+          <i className="bi bi-box-arrow-left" style={{ fontSize: "18px" }} />
           Cerrar sesión
         </button>
       </div>
