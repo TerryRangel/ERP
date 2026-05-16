@@ -7,6 +7,7 @@ const menuItems = [
   { name: "Proveedores", path: "/suppliers", icon: "building-store" },
   { name: "Auditoría", path: "/audit", icon: "clipboard-list" },
   { name: "Usuarios", path: "/users", icon: "users" },
+  { name: "Clientes", path: "/clients", icon: "user" },
 ];
 
 export default function Sidebar() {
