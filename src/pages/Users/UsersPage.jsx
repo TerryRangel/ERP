@@ -5,8 +5,6 @@ import AddUserModal from "../../components/ui/AddUserModal.jsx";
 import EditPermissionsModal from "../../components/ui/EditPermissionsModal.jsx";
 import ConfirmAlert from "../../components/ui/Alert.jsx";
 
-import "bootstrap-icons/font/bootstrap-icons.css";
-
 export default function UsersPage() {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);

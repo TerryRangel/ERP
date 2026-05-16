@@ -1,5 +1,4 @@
 import { useAuth } from "../../context/AuthContext";
-import "bootstrap-icons/font/bootstrap-icons.css";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
