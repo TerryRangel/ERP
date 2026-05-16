@@ -6,7 +6,6 @@ const getAuthHeader = () => {
 };
 
 export const productService = {
-  // Obtener productos
   getAll: async () => {
     const response = await fetch(`${API_URL}/products`, {
       method: 'GET',
@@ -14,10 +13,9 @@ export const productService = {
     });
     if (!response.ok) throw new Error('Error al obtener productos');
     const data = await response.json();
-    return data.items || []; // Extraemos solo los productos del objeto de respuesta
+    return data.items || []; 
   },
 
-  // Crear producto
   create: async (productData) => {
     const payload = {
       sku: productData.sku,
@@ -31,16 +29,49 @@ export const productService = {
 
     const response = await fetch(`${API_URL}/products`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader()
-      },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
       body: JSON.stringify(payload)
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || 'Error al crear el producto');
+    }
+    return await response.json();
+  },
+
+  update: async (id, productData) => {
+    const payload = {
+      sku: productData.sku,
+      nombre: productData.nombre,
+      descripcion: productData.descripcion || '',
+      categoria: productData.categoria || '',
+      precioVenta: Number(productData.precioVenta || 0),
+      stock: Number(productData.stock || 0)
+    };
+
+    const response = await fetch(`${API_URL}/products/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Error al actualizar el producto');
+    }
+    return await response.json();
+  },
+
+  remove: async (id) => {
+    const response = await fetch(`${API_URL}/products/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Error al eliminar el producto');
     }
     return await response.json();
   }
