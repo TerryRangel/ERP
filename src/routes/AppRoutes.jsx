@@ -7,6 +7,7 @@ import UsersPage from '../pages/Users/UsersPage';
 import AuditPage from '../pages/Audit/AuditPage';
 import SuppliersPage from '../pages/Suppliers/SupliersPage';
 import ProductsPage from '../pages/Products/ProductsPage';
+import ClientsPage from '../pages/Clients/ClientsPage'; 
 import NoAutorizado from '../components/layout/nopermission';
 
 export default function AppRoutes() {
@@ -20,6 +21,7 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/clients" element={<ClientsPage />} />
           
           {/* --- RUTAS BLINDADAS POR PERMISOS --- */}
           <Route 

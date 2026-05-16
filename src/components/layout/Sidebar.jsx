@@ -3,6 +3,15 @@ import { useAuth } from "../../context/AuthContext";
 import { Can } from "../../components/can.jsx";
 import "bootstrap-icons/font/bootstrap-icons.css"; // <-- Importamos Bootstrap Icons
 
+const menuItems = [
+  { name: "Dashboard", path: "/dashboard", icon: "chart-bar" },
+  { name: "Productos", path: "/products", icon: "shopping-bag" },
+  { name: "Proveedores", path: "/suppliers", icon: "building-store" },
+  { name: "Auditoría", path: "/audit", icon: "clipboard-list" },
+  { name: "Usuarios", path: "/users", icon: "users" },
+  { name: "Clientes", path: "/clients", icon: "user" },
+];
+
 export default function Sidebar() {
   const { logout } = useAuth();
 
