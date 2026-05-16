@@ -1,6 +1,6 @@
 import { useAuth } from "../context/AuthContext";
 
-export const Can = ({ perform, excludeRoles = [], children }) => {
+export const Can = ({ I, perform, excludeRoles = [], children }) => {
   const { user, loading } = useAuth();
 
   if (loading || !user) return null;
@@ -13,10 +13,13 @@ export const Can = ({ perform, excludeRoles = [], children }) => {
   // 2. Si el rol está en la lista negra, fuera
   if (excludeRoles.includes(user.role)) return null;
 
+  // Detectamos si usaste "I" o "perform"
+  const permissionRequired = I || perform;
+
   // 3. Si no hay permiso requerido, se muestra
-  if (!perform) return children;
+  if (!permissionRequired) return children;
 
   // 4. Verificación de permisos individuales
-  const hasPermission = user.permissions?.includes(perform);
+  const hasPermission = user.permissions?.includes(permissionRequired);
   return hasPermission ? children : null;
 };

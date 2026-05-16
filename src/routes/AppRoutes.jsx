@@ -1,11 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
+import RequirePermission from '../components/RequirePermission.jsx'; 
 import Login from '../pages/Auth/Login';
 import Dashboard from '../pages/Dashboard/dashboard';
 import UsersPage from '../pages/Users/UsersPage';
 import AuditPage from '../pages/Audit/AuditPage';
 import SuppliersPage from '../pages/Suppliers/SupliersPage';
 import ProductsPage from '../pages/Products/ProductsPage';
+import NoAutorizado from '../components/layout/nopermission';
 
 export default function AppRoutes() {
   return (
@@ -16,11 +18,50 @@ export default function AppRoutes() {
         
         {/* Rutas protegidas */}
         <Route element={<ProtectedRoute />}>
+          
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/users" element={<UsersPage />} />
-          <Route path="/audit" element={<AuditPage />} />
-          <Route path="/suppliers" element={<SuppliersPage />} />
-          <Route path="/products" element={<ProductsPage />} />
+          
+          {/* --- RUTAS BLINDADAS POR PERMISOS --- */}
+          <Route 
+            path="/users" 
+            element={
+              <RequirePermission I="users:read">
+                <UsersPage />
+              </RequirePermission>
+            } 
+          />
+          
+          <Route 
+            path="/audit" 
+            element={
+              <RequirePermission I="audit:read">
+                <AuditPage />
+              </RequirePermission>
+            } 
+          />
+          
+          <Route 
+            path="/suppliers" 
+            element={
+              <RequirePermission I="suppliers:read">
+                <SuppliersPage />
+              </RequirePermission>
+            } 
+          />
+          
+          <Route 
+            path="/products" 
+            element={
+              <RequirePermission I="products:read">
+                <ProductsPage />
+              </RequirePermission>
+            } 
+          />
+          {/* ------------------------------------ */}
+
+          <Route path="/no-autorizado" element={<NoAutorizado />} />
+
+          {/* El comodín (*) SIEMPRE debe ir al final de la lista */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
 

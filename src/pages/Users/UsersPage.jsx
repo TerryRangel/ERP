@@ -448,10 +448,11 @@ export default function UsersPage() {
                   <th className="text-left py-5 text-xs uppercase tracking-widest text-gray-400 font-black">
                     Estado
                   </th>
-
+                   <Can I="users:create">
                   <th className="text-center pr-10 py-5 text-xs uppercase tracking-widest text-gray-400 font-black">
                     Acciones
                   </th>
+                </Can>
                 </tr>
               </thead>
 
@@ -556,6 +557,8 @@ export default function UsersPage() {
 
                       {/* ACTIONS */}
                       <td className="pr-10">
+
+                         <Can I="users:create"> 
                         <div className="flex items-center justify-center gap-3">
 
                           <button
@@ -588,6 +591,7 @@ export default function UsersPage() {
                             <i className="bi bi-trash3-fill"></i>
                           </button>
                         </div>
+                        </Can>
                       </td>
                     </tr>
                   ))
