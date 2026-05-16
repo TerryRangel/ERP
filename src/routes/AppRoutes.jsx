@@ -4,7 +4,7 @@ import Login from '../pages/Auth/Login';
 import Dashboard from '../pages/Dashboard/dashboard';
 import UsersPage from '../pages/Users/UsersPage';
 import AuditPage from '../pages/Audit/AuditPage';
-import SuppliersPage from '../pages/Suppliers/SupliersPage';
+import SuppliersPage from '../pages/Suppliers/SuppliersPage';
 import ProductsPage from '../pages/Products/ProductsPage';
 
 export default function AppRoutes() {
