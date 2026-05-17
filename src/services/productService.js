@@ -24,7 +24,8 @@ export const productService = {
       categoria: productData.categoria || '',
       precioVenta: Number(productData.precioVenta || 0),
       stock: Number(productData.stock || 0),
-      activo: true
+      activo: true,
+      imagenUrl: productData.imagenUrl || ''
     };
 
     const response = await fetch(`${API_URL}/products`, {
@@ -47,7 +48,8 @@ export const productService = {
       descripcion: productData.descripcion || '',
       categoria: productData.categoria || '',
       precioVenta: Number(productData.precioVenta || 0),
-      stock: Number(productData.stock || 0)
+      stock: Number(productData.stock || 0),
+      imagenUrl: productData.imagenUrl || ''
     };
 
     const response = await fetch(`${API_URL}/products/${id}`, {
