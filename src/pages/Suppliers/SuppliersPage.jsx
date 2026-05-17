@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { suppliersService } from '../../services/suppliersService';
 import SupplierFormModal from './SupplierFormModal';
+import { Can } from '../../components/can'; 
 
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState([]);
@@ -169,7 +170,7 @@ export default function SuppliersPage() {
               </div>
             )}
           </div>
-
+          <Can I="suppliers:create"></Can>
           <button onClick={openNewModal} className="flex items-center gap-3 text-sm text-slate-800 hover:text-[#4B5E4B] transition-colors ml-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 font-bold" fill="currentColor" viewBox="0 0 16 16">
               <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
@@ -180,6 +181,7 @@ export default function SuppliersPage() {
               <span className="block font-bold">Proveedor</span>
             </div>
           </button>
+          <Can/>
         </div>
       </div>
 
@@ -234,7 +236,8 @@ export default function SuppliersPage() {
                     <th className="p-4 pb-3">Contacto</th>
                     <th className="p-4 pb-3">Teléfono</th>
                     <th className="p-4 pb-3">Estatus</th>
-                    <th className="p-4 pb-3 text-center">Acciones</th>
+
+                    <Can I="suppliers:create"> <th className="p-4 pb-3 text-center">Acciones</th></Can>
                   </tr>
                 </thead>
                 <tbody className="text-sm">
@@ -265,8 +268,11 @@ export default function SuppliersPage() {
                           <span className={`w-2 h-2 rounded-full ${supplier.activo !== false ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
                           {supplier.activo !== false ? 'ACTIVO' : 'INACTIVO'}
                         </span>
-                      </td>
+                      </td> 
+                      <Can I="suppliers:create">
                       <td className="p-4 text-center">
+
+                       
                         <div className="flex items-center justify-center gap-4">
                           {/* BOTÓN EDITAR */}
                           <button 
@@ -285,7 +291,8 @@ export default function SuppliersPage() {
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/></svg>
                           </button>
                         </div>
-                      </td>
+                        
+                      </td></Can>
                     </tr>
                   ))}
                 </tbody>
