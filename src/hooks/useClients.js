@@ -6,7 +6,7 @@ export const useClients = () => {
     const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const fecthClients = async () => {
+    const fetchClients = async () => {
         try {
             const data = await clientService.getAll()
             setClients(data)
@@ -17,9 +17,29 @@ export const useClients = () => {
         }
     };
 
+    const createClient = async (data) => {
+        await clientService.create(data);
+        fetchClients();
+    };
+
+    const updateClient = async (id, data) => {
+        await clientService.update(id, data);
+        fetchClients();
+    }
+
+    const deleteClient = async (id) => {
+        await clientService.remove(id)
+        fetchClients();
+    }
+
+    const toggleClient = async (id) => {
+        await clientService.toggleActive(id)
+        fetchClients();
+    }
+
     useEffect(() => {
-        fecthClients();
+        fetchClients();
     }, []);
 
-    return { clients, loading, fecthClients, };
+    return { clients, loading, createClient, updateClient, deleteClient, toggleClient, };
 }

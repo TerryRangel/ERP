@@ -1,17 +1,31 @@
 import { useClients } from "../../hooks/useClients";
+import { useState } from "react";
+import ClientFormModal from "../../components/ui/ClientFormModal";
 
 export default function ClientsPage() {
-    const { clients, loading } = useClients();
+  const { clients, loading, createClient, updateClient, deleteClient, toggleClient } = useClients();
 
-    if (loading) {
-        return (
-        <div> Cargando Clientes... </div>
-        );
-    }
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
 
-     return (
+  if (loading) return <div>Cargando...</div>;
+
+  return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Clientes</h1>
+
+      <div className="flex justify-between mb-4">
+        <h1 className="text-2xl font-bold">Clientes</h1>
+
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            setSelectedClient(null);
+            setModalOpen(true);
+          }}
+        >
+          + Nuevo Cliente
+        </button>
+      </div>
 
       <table className="table w-full">
         <thead>
@@ -19,22 +33,65 @@ export default function ClientsPage() {
             <th>Nombre</th>
             <th>Email</th>
             <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
 
         <tbody>
           {clients.map((c) => (
             <tr key={c.id}>
-              <td>{c.name}</td>
+              <td>{c.nombre}</td> {/* 🔥 CAMBIO */}
               <td>{c.email}</td>
               <td>
-                {c.active ? "Activo" : "Inactivo"}
+                <span className={`badge ${c.activo ? "badge-success" : "badge-error"}`}>
+                  {c.activo ? "Activo" : "Inactivo"}
+                </span>
+              </td>
+
+              <td className="flex gap-2">
+
+                <button
+                  className="btn btn-sm"
+                  onClick={() => {
+                    setSelectedClient(c);
+                    setModalOpen(true);
+                  }}
+                >
+                  Editar
+                </button>
+
+                <button
+                  className="btn btn-warning btn-sm"
+                  onClick={() => toggleClient(c.id)}
+                >
+                  Estado
+                </button>
+
+                <button
+                  className="btn btn-error btn-sm"
+                  onClick={() => deleteClient(c.id)}
+                >
+                  Eliminar
+                </button>
+
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      <ClientFormModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        initialData={selectedClient}
+        onSubmit={(data) => {
+          if (selectedClient) {
+            updateClient(selectedClient.id, data);
+          } else {
+            createClient(data);
+          }
+        }}
+      />
     </div>
   );
 }
-    
