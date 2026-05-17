@@ -104,7 +104,16 @@ export default function ProductsPage() {
               </Can>
 
               <div className="relative aspect-[4/3] bg-[#f8f8f6] flex items-center justify-center border-b border-[#ECECE7]">
-                <i className="bi bi-box2 text-4xl text-[#DCE3CF]"></i>
+                {/* CONDICIONAL: ¿Tiene foto guardada en la base de datos? */}
+                {prod.imagenUrl ? (
+                  <img 
+                    src={prod.imagenUrl} 
+                    alt={prod.nombre} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                  />
+                ) : (
+                  <i className="bi bi-box2 text-4xl text-[#DCE3CF]"></i>
+                )}
                 <div className="absolute top-4 left-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-semibold bg-[#EEF1E7] text-[#6A734D] border border-[#DCE3CF] shadow-sm uppercase tracking-wider">
                   {prod.categoria || "General"}
                 </div>
