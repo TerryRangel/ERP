@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { productService } from "../../services/productService";
 import ProductModal from "../../components/ui/ProductModal";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import {Can} from "../../components/Can";
 
 export default function ProductsPage() {
   const [productos, setProductos] = useState([]);
@@ -68,7 +69,7 @@ export default function ProductsPage() {
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[#1F2937]">Productos</h1>
           <p className="text-gray-400 mt-2 text-sm">Administra los productos de crochet y su stock.</p>
         </div>
-
+        <Can I="products:create">
         <button
           onClick={handleOpenNew}
           className="
@@ -82,12 +83,16 @@ export default function ProductsPage() {
           <i className="bi bi-plus-circle-fill text-lg relative z-10"></i>
           <span className="relative z-10">Nuevo Producto</span>
         </button>
-      </div>
+        </Can>
+      </div> 
+  
 
       {productos.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {productos.map((prod) => (
             <div key={prod.id} className="group relative bg-white border border-[#ECECE7] rounded-3xl overflow-hidden shadow-[0_8px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hover:shadow-[0_15px_35px_rgba(141,155,112,0.1)] hover:-translate-y-1">
+             
+             <Can I="products:create">
               <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
                 <button onClick={() => handleEdit(prod)} className="w-9 h-9 rounded-xl bg-white text-[#6A734D] flex items-center justify-center hover:bg-[#8d9b70] hover:text-white shadow-md transition-colors border border-[#ECECE7]">
                   <i className="bi bi-pencil-square"></i>
@@ -96,6 +101,7 @@ export default function ProductsPage() {
                   <i className="bi bi-trash3-fill"></i>
                 </button>
               </div>
+              </Can>
 
               <div className="relative aspect-[4/3] bg-[#f8f8f6] flex items-center justify-center border-b border-[#ECECE7]">
                 <i className="bi bi-box2 text-4xl text-[#DCE3CF]"></i>
