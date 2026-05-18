@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { suppliersService } from '../../services/suppliersService';
 import SupplierFormModal from './SupplierFormModal';
 import { Can } from '../../components/can'; 
@@ -11,10 +11,17 @@ export default function SuppliersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [supplierToEdit, setSupplierToEdit] = useState(null);
   
-  // Estados para Filtros
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('Todos');
-  const [searchTerm, setSearchTerm] = useState('');
+  // Estados del Formulario de Filtros
+  const [formSearch, setFormSearch] = useState('');
+  const [formStatus, setFormStatus] = useState('Todos');
+  
+  // Estados Aplicados (los que realmente cambian la tabla)
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [appliedStatus, setAppliedStatus] = useState('Todos');
+
+  // Estado para nuestro Dropdown Personalizado
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const fetchSuppliers = async () => {
     try {
@@ -29,7 +36,17 @@ export default function SuppliersPage() {
 
   useEffect(() => { fetchSuppliers(); }, []);
 
-  // Función combinada para Crear y Actualizar
+  // Cierra el dropdown si haces clic afuera
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsStatusDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleSaveSupplier = async (supplierData) => {
     try {
       if (supplierToEdit) {
@@ -45,7 +62,6 @@ export default function SuppliersPage() {
     }
   };
 
-  // Función para Eliminar
   const handleDelete = async (id) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este proveedor? Esta acción no se puede deshacer.')) {
       try {
@@ -72,14 +88,31 @@ export default function SuppliersPage() {
     setSupplierToEdit(null);
   };
 
+  // Funciones de la barra de filtros
+  const handleApplyFilters = () => {
+    setAppliedSearch(formSearch);
+    setAppliedStatus(formStatus);
+  };
+
+  const handleClearFilters = () => {
+    setFormSearch('');
+    setFormStatus('Todos');
+    setAppliedSearch('');
+    setAppliedStatus('Todos');
+  };
+
+  // Lógica de Filtrado Aplicado
   const filteredSuppliers = suppliers.filter(supplier => {
     const isActivo = supplier.activo !== false;
-    const matchesStatus = filterStatus === 'Todos' ? true : filterStatus === 'Activo' ? isActivo : !isActivo;
-    const searchLower = searchTerm.toLowerCase();
-    const matchesSearch = 
+    const matchesStatus = appliedStatus === 'Todos' ? true : appliedStatus === 'Activo' ? isActivo : !isActivo;
+    
+    const searchLower = appliedSearch.toLowerCase();
+    const matchesSearch = appliedSearch ? (
       (supplier.nombre || supplier.name || '').toLowerCase().includes(searchLower) ||
       (supplier.contacto || supplier.contactName || '').toLowerCase().includes(searchLower) ||
-      (supplier.rfc || '').toLowerCase().includes(searchLower);
+      (supplier.rfc || '').toLowerCase().includes(searchLower)
+    ) : true;
+    
     return matchesStatus && matchesSearch;
   });
 
@@ -97,6 +130,7 @@ export default function SuppliersPage() {
   return (
     <div className="space-y-6">
       
+      {/* 1. CABECERA */}
       <div className="flex items-center gap-4 mb-2">
         <div className="text-[#4B5E4B]">
           <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
@@ -109,84 +143,90 @@ export default function SuppliersPage() {
         </div>
       </div>
 
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-8">
-        <p className="text-slate-600 text-base max-w-xl">
-          Administra las empresas asociadas, contactos y estatus operativo desde una interfaz limpia y centralizada.
-        </p>
+      <p className="text-slate-600 text-base max-w-xl mb-4">
+        Administra las empresas asociadas, contactos y estatus operativo desde una interfaz limpia y centralizada.
+      </p>
+      <br />
 
-        <div className="flex items-center gap-6 z-20">
+      {/* 2. BARRA DE FILTROS AVANZADA (Diseño con lupa corregida) */}
+      <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-5 shadow-sm mb-8 relative z-20">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
           
-          <div className="relative flex items-center">
-            <input 
-              type="text" 
-              placeholder="Buscar proveedores..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-5 pr-12 py-3 bg-white border-none rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 w-64 shadow-sm text-slate-600" 
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+          <div className="md:col-span-5">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Buscar Proveedor</label>
+            <div className="relative flex items-center">
+              <input type="text" placeholder="Buscar por nombre, RFC o contacto..." 
+                value={formSearch} onChange={(e) => setFormSearch(e.target.value)}
+                className="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4B5E4B] text-slate-700 shadow-sm" />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
           </div>
 
-          <div className="relative">
+          {/* DROPDOWN PERSONALIZADO DE ESTADO */}
+          <div className="md:col-span-3 relative" ref={dropdownRef}>
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Estado Operativo</label>
             <button 
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors"
+              onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+              className="w-full flex items-center justify-between px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 shadow-sm hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#4B5E4B]"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-              Filtrar
+              <span className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${formStatus === 'Activo' ? 'bg-emerald-500' : formStatus === 'Inactivo' ? 'bg-rose-500' : 'bg-slate-300'}`}></span>
+                {formStatus === 'Todos' ? 'Todos los estados' : formStatus}
+              </span>
+              <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-slate-400 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </button>
 
-            {isFilterOpen && (
-              <div className="absolute right-0 top-full mt-4 w-60 bg-white rounded-3xl shadow-xl border border-slate-100 p-6 z-50 animate-fade-in">
-                <div className="mb-6">
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Estado</label>
-                  <select 
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:border-[#4B5E4B] focus:ring-1 focus:ring-[#4B5E4B]"
-                  >
-                    <option value="Todos">Todos</option>
-                    <option value="Activo">Activo</option>
-                    <option value="Inactivo">Inactivo</option>
-                  </select>
-                </div>
-                
-                <div className="flex justify-between items-center mt-2">
-                  <button 
-                    onClick={() => { setFilterStatus('Todos'); setIsFilterOpen(false); }}
-                    className="text-sm text-slate-500 hover:text-slate-800 transition-colors"
-                  >
-                    Limpiar
-                  </button>
-                  <button 
-                    onClick={() => setIsFilterOpen(false)}
-                    className="text-sm text-[#4B5E4B] font-bold hover:text-[#3a493a] transition-colors"
-                  >
-                    Aplicar
-                  </button>
+            {/* Menú Flotante del Dropdown */}
+            {isStatusDropdownOpen && (
+              <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden z-50 animate-fade-in">
+                <div className="py-1">
+                  {['Todos', 'Activo', 'Inactivo'].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => { setFormStatus(status); setIsStatusDropdownOpen(false); }}
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors flex items-center gap-2 ${formStatus === status ? 'bg-slate-50 font-bold text-[#4B5E4B]' : 'text-slate-600'}`}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${status === 'Activo' ? 'bg-emerald-500' : status === 'Inactivo' ? 'bg-rose-500' : 'bg-slate-300'}`}></span>
+                      {status === 'Todos' ? 'Todos los estados' : status}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
           </div>
-          <Can I="suppliers:create"></Can>
-          <button onClick={openNewModal} className="flex items-center gap-3 text-sm text-slate-800 hover:text-[#4B5E4B] transition-colors ml-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 font-bold" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
-              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-            </svg>
-            <div className="text-left leading-tight">
-              <span className="block font-normal text-slate-600 text-xs">Nuevo</span>
-              <span className="block font-bold">Proveedor</span>
-            </div>
-          </button>
-          <Can/>
+
+          <div className="md:col-span-4 flex items-center justify-end gap-6">
+            
+            <button onClick={handleApplyFilters} className="text-sm text-[#4B5E4B] font-bold hover:text-[#3a493a] transition-colors">
+              Aplicar
+            </button>
+            
+            <button onClick={handleClearFilters} className="text-sm text-slate-600 font-bold hover:text-slate-900 transition-colors flex items-center gap-1.5">
+              Limpiar
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+            
+            <Can I="suppliers:create">
+              {/* Línea divisoria sutil */}
+              <div className="h-5 w-px bg-slate-300 mx-2"></div>
+              
+              <button onClick={openNewModal} className="text-sm text-slate-800 font-bold hover:text-[#4B5E4B] transition-colors flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+                Nuevo
+              </button>
+            </Can>
+            
+          </div>
         </div>
       </div>
 
+      {/* 3. TARJETAS DE MÉTRICAS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white px-8 py-6 rounded-[2rem] shadow-sm flex items-center justify-between">
+        <div className="bg-white px-8 py-6 rounded-[2rem] shadow-sm flex items-center justify-between border border-slate-100">
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Proveedores</p>
             <p className="text-2xl font-bold text-slate-800">{totalSuppliers}</p>
@@ -196,7 +236,7 @@ export default function SuppliersPage() {
           </div>
         </div>
 
-        <div className="bg-white px-8 py-6 rounded-[2rem] shadow-sm flex items-center justify-between">
+        <div className="bg-white px-8 py-6 rounded-[2rem] shadow-sm flex items-center justify-between border border-slate-100">
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Activos</p>
             <p className="text-2xl font-bold text-emerald-600">{activeSuppliers}</p>
@@ -206,7 +246,7 @@ export default function SuppliersPage() {
           </div>
         </div>
 
-        <div className="bg-white px-8 py-6 rounded-[2rem] shadow-sm flex items-center justify-between">
+        <div className="bg-white px-8 py-6 rounded-[2rem] shadow-sm flex items-center justify-between border border-slate-100">
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Inactivos</p>
             <p className="text-2xl font-bold text-rose-500">{inactiveSuppliers}</p>
@@ -217,7 +257,8 @@ export default function SuppliersPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-[2rem] shadow-sm overflow-hidden min-h-[400px] p-6 pt-8 z-10 relative">
+      {/* 4. TABLA */}
+      <div className="bg-white rounded-[2rem] shadow-sm overflow-hidden min-h-[400px] p-6 pt-8 relative z-10 border border-slate-100">
         <div className="mb-6 px-2">
           <h2 className="text-lg font-bold text-slate-800">Directorio de proveedores</h2>
           <p className="text-sm text-slate-400">{filteredSuppliers.length} resultados encontrados</p>
@@ -225,7 +266,7 @@ export default function SuppliersPage() {
 
         {loading ? (
           <div className="flex justify-center items-center h-40">
-            <span className="loading loading-spinner loading-md text-emerald-500"></span>
+            <span className="loading loading-spinner loading-md text-[#4B5E4B]"></span>
           </div>
         ) : filteredSuppliers.length > 0 ? (
             <div className="overflow-x-auto">
@@ -236,7 +277,6 @@ export default function SuppliersPage() {
                     <th className="p-4 pb-3">Contacto</th>
                     <th className="p-4 pb-3">Teléfono</th>
                     <th className="p-4 pb-3">Estatus</th>
-
                     <Can I="suppliers:create"> <th className="p-4 pb-3 text-center">Acciones</th></Can>
                   </tr>
                 </thead>
@@ -271,10 +311,7 @@ export default function SuppliersPage() {
                       </td> 
                       <Can I="suppliers:create">
                       <td className="p-4 text-center">
-
-                       
                         <div className="flex items-center justify-center gap-4">
-                          {/* BOTÓN EDITAR */}
                           <button 
                             onClick={() => openEditModal(supplier)} 
                             className="text-slate-400 hover:text-blue-600 transition-colors" 
@@ -282,7 +319,6 @@ export default function SuppliersPage() {
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fillRule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/></svg>
                           </button>
-                          {/* BOTÓN ELIMINAR */}
                           <button 
                             onClick={() => handleDelete(supplier.id || supplier._id)} 
                             className="text-slate-400 hover:text-rose-600 transition-colors" 
@@ -291,8 +327,8 @@ export default function SuppliersPage() {
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/></svg>
                           </button>
                         </div>
-                        
-                      </td></Can>
+                      </td>
+                      </Can>
                     </tr>
                   ))}
                 </tbody>
