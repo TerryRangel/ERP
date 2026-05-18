@@ -9,7 +9,7 @@ export const useClients = () => {
     const fetchClients = async () => {
         try {
             const data = await clientService.getAll()
-            setClients(data)
+            setClients(data.items || []);
         } catch (error) {
             console.error("Error:", error)
         } finally {
@@ -32,8 +32,8 @@ export const useClients = () => {
         fetchClients();
     }
 
-    const toggleClient = async (id) => {
-        await clientService.toggleActive(id)
+    const toggleClient = async (client) => {
+        await clientService.toggleActive(client.id, !client.activo)
         fetchClients();
     }
 
