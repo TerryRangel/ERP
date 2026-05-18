@@ -27,7 +27,7 @@ export default function ClientsPage() {
         </button>
       </div>
 
-      <table className="table w-full">
+      <table className="table w-full bg-base-100 rounded-xl shadow">
         <thead>
           <tr>
             <th>Nombre</th>
@@ -40,18 +40,19 @@ export default function ClientsPage() {
         <tbody>
           {clients.map((c) => (
             <tr key={c.id}>
-              <td>{c.nombre}</td> {/* 🔥 CAMBIO */}
+              <td>{c.nombre}</td> 
               <td>{c.email}</td>
               <td>
-                <span className={`badge ${c.activo ? "badge-success" : "badge-error"}`}>
-                  {c.activo ? "Activo" : "Inactivo"}
+                <span className={`badge gap-2 ${c.activo ? "badge-success" : "badge-error"}`}>
+                    <span className="w-2 h-2 rounded-full bg-current"></span>
+                    {c.activo ? "Activo" : "Inactivo"}
                 </span>
               </td>
 
               <td className="flex gap-2">
 
                 <button
-                  className="btn btn-sm"
+                  className="btn btn-ghost btn-sm"
                   onClick={() => {
                     setSelectedClient(c);
                     setModalOpen(true);
@@ -62,7 +63,7 @@ export default function ClientsPage() {
 
                 <button
                   className="btn btn-warning btn-sm"
-                  onClick={() => toggleClient(c.id)}
+                  onClick={() => toggleClient(c)}
                 >
                   Estado
                 </button>

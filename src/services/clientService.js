@@ -3,7 +3,7 @@ import api from './api';
 
 export const clientService = {
     getAll: async () => {
-        const res = await api.get('/clients');
+        const res = await api.get('/clients',);
         return res.data;
     },
 
@@ -22,9 +22,8 @@ export const clientService = {
         return res.data;    
     },
 
-    toogleActive: async (id) => {
-        const res = await api.patch(`/clients/${id}/toggle-active`);
-        return res.data;
+    toggleActive: async (id, activo) => {
+        (await api.patch(`/clients/${id}/toggle-active`, { activo })).data;
     },
 
     remove: async (id) => {
