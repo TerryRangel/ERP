@@ -3,96 +3,432 @@ import { useState } from "react";
 import ClientFormModal from "../../components/ui/ClientFormModal";
 
 export default function ClientsPage() {
-  const { clients, loading, createClient, updateClient, deleteClient, toggleClient } = useClients();
+  const { clients, meta, loading, setFilters, createClient, updateClient, deleteClient, toggleClient } = useClients();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
 
+  const [search, setSearch] = useState("");
+  const [clientToDelete, setClientToDelete] = useState(null);
   if (loading) return <div>Cargando...</div>;
 
   return (
-    <div className="p-6">
+  <div className="min-h-screen bg-[#F5F7F2] px-2 md:px-4 py-8 w-full">
 
-      <div className="flex justify-between mb-4">
-        <h1 className="text-2xl font-bold">Clientes</h1>
+    <div className="max-w-[2200px] mx-auto">
 
-        <button
-          className="btn btn-primary"
-          onClick={() => {
-            setSelectedClient(null);
-            setModalOpen(true);
-          }}
-        >
-          + Nuevo Cliente
-        </button>
+      {/* HEADER */}
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-10">
+
+        <div>
+          <div className="flex items-center gap-5 mb-4">
+
+            <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-[#DDE8CF] to-[#8FA878] text-[#5F6F52] flex items-center justify-center shadow-md border border-[#D4DFC5]">
+              <i className="bi bi-people-fill text-2xl"></i>
+            </div>
+
+            <div>
+              <p className="uppercase tracking-[0.35em] text-xs font-bold text-[#7E8B63]">
+                Gestión ERP
+              </p>
+
+              <h1 className="text-5xl font-black text-[#1F2937] leading-none mt-1">
+                Clientes
+              </h1>
+            </div>
+          </div>
+
+          <p className="text-gray-500 text-lg max-w-2xl">
+            Administra y controla todos los clientes registrados en el sistema.
+          </p>
+        </div>
+
+        {/* ACTIONS */}
+        <div className="flex flex-col lg:flex-row gap-4 w-full xl:w-auto">
+
+          {/* SEARCH */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Buscar clientes..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="
+                w-full lg:w-[360px]
+                h-[58px]
+                rounded-2xl
+                border border-[#E5EBDD]
+                bg-white
+                pl-5 pr-14
+                text-sm
+                font-medium
+                text-gray-700
+                outline-none
+                transition-all
+                shadow-sm
+                focus:border-[#7E8B63]
+                focus:ring-4
+                focus:ring-[#7E8B63]/10
+              "
+            />
+
+            <i className="bi bi-search absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
+          </div>
+
+          {/* BOTON */}
+          <button
+            onClick={() =>
+              setFilters((prev) => ({
+                ...prev,
+                q: search,
+                page: 1
+              }))
+            }
+            className="
+              h-[58px]
+              px-7
+              rounded-2xl
+              bg-gradient-to-r
+              from-[#8FA878]
+              to-[#718355]
+              text-white
+              font-semibold
+              flex items-center gap-3
+              shadow-lg
+              hover:opacity-90
+              transition-all
+            "
+          >
+            <i className="bi bi-search"></i>
+            Buscar
+          </button>
+
+          {/* NUEVO */}
+          <button
+            onClick={() => {
+              setSelectedClient(null);
+              setModalOpen(true);
+            }}
+            className="
+              h-[58px]
+              px-7
+              rounded-2xl
+              bg-[#1F2937]
+              text-white
+              font-semibold
+              flex items-center gap-3
+              shadow-lg
+              hover:opacity-90
+              transition-all
+            "
+            onClick = {() => {
+              setSelectedClient(null)
+              setModalOpen(true)
+            }}
+          >
+            <i className="bi bi-plus-circle-fill"></i>
+            Nuevo Cliente
+          </button>
+
+        </div>
       </div>
 
-      <table className="table w-full bg-base-100 rounded-xl shadow">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
+      {/* STATS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
 
-        <tbody>
-          {clients.map((c) => (
-            <tr key={c.id}>
-              <td>{c.nombre}</td> 
-              <td>{c.email}</td>
-              <td>
-                <span className={`badge gap-2 ${c.activo ? "badge-success" : "badge-error"}`}>
-                    <span className="w-2 h-2 rounded-full bg-current"></span>
-                    {c.activo ? "Activo" : "Inactivo"}
-                </span>
-              </td>
+        <div className="bg-white border border-[#E5EBDD] rounded-[32px] p-7 flex items-center justify-between shadow-sm">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-400 font-bold">
+              Total
+            </p>
 
-              <td className="flex gap-2">
+            <h3 className="text-5xl font-black mt-2 text-gray-700">
+              {meta.total || 0}
+            </h3>
+          </div>
 
-                <button
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => {
-                    setSelectedClient(c);
-                    setModalOpen(true);
-                  }}
-                >
-                  Editar
-                </button>
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-gray-100">
+            <i className="bi bi-people text-2xl text-gray-700"></i>
+          </div>
+        </div>
 
-                <button
-                  className="btn btn-warning btn-sm"
-                  onClick={() => toggleClient(c)}
-                >
+        <div className="bg-white border border-[#E5EBDD] rounded-[32px] p-7 flex items-center justify-between shadow-sm">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-400 font-bold">
+              Activos
+            </p>
+
+            <h3 className="text-5xl font-black mt-2 text-green-700">
+              {clients.filter(c => c.activo).length}
+            </h3>
+          </div>
+
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-green-100">
+            <i className="bi bi-check-circle-fill text-2xl text-green-700"></i>
+          </div>
+        </div>
+
+        <div className="bg-white border border-[#E5EBDD] rounded-[32px] p-7 flex items-center justify-between shadow-sm">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-400 font-bold">
+              Inactivos
+            </p>
+
+            <h3 className="text-5xl font-black mt-2 text-red-600">
+              {clients.filter(c => !c.activo).length}
+            </h3>
+          </div>
+
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-red-100">
+            <i className="bi bi-person-x-fill text-2xl text-red-600"></i>
+          </div>
+        </div>
+
+      </div>
+
+      {/* TABLE */}
+      <div className="bg-white border border-[#E5EBDD] rounded-[36px] shadow-sm overflow-hidden">
+
+        <div className="px-8 py-6 border-b border-[#EEF2E7]">
+          <h2 className="text-xl font-black text-gray-800">
+            Lista de clientes
+          </h2>
+
+          <p className="text-sm text-gray-400 mt-1">
+            {clients.length} resultados encontrados
+          </p>
+        </div>
+
+        <div className="overflow-x-auto">
+
+          <table className="w-full">
+
+            <thead>
+              <tr className="bg-[#FAFBF8] border-b border-[#EEF2E7]">
+
+                <th className="text-left pl-10 py-5 text-xs uppercase tracking-widest text-gray-400 font-black">
+                  Cliente
+                </th>
+
+                <th className="text-left py-5 text-xs uppercase tracking-widest text-gray-400 font-black">
+                  Contacto
+                </th>
+
+                <th className="text-left py-5 text-xs uppercase tracking-widest text-gray-400 font-black">
                   Estado
-                </button>
+                </th>
 
-                <button
-                  className="btn btn-error btn-sm"
-                  onClick={() => deleteClient(c.id)}
+                <th className="text-center pr-10 py-5 text-xs uppercase tracking-widest text-gray-400 font-black">
+                  Acciones
+                </th>
+
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {clients.map((c) => (
+
+                <tr
+                  key={c.id}
+                  className="border-b border-[#F3F5EF] hover:bg-[#FAFBF8] transition-all"
                 >
-                  Eliminar
-                </button>
 
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                  {/* CLIENTE */}
+                  <td className="pl-10 py-6">
 
+                    <div className="flex items-center gap-4">
+
+                      <div className="w-14 h-14 rounded-2xl bg-[#E8F0DD] text-[#5F6F52] flex items-center justify-center font-bold shadow-sm border border-[#D7E4C0]">
+                        {c.nombre?.[0]}
+                      </div>
+
+                      <div>
+                        <h3 className="font-bold text-gray-800">
+                          {c.nombre}
+                        </h3>
+
+                        <p className="text-xs text-gray-400 mt-1">
+                          ID: {c.id?.slice(0, 8)}
+                        </p>
+                      </div>
+
+                    </div>
+
+                  </td>
+
+                  {/* CONTACTO */}
+                  <td>
+                    <div className="flex flex-col gap-1">
+
+                      <span className="font-medium text-gray-700">
+                        {c.email || "Sin email"}
+                      </span>
+
+                      <span className="text-xs text-gray-400">
+                        {c.telefono || "Sin teléfono"}
+                      </span>
+
+                    </div>
+                  </td>
+
+                  {/* ESTADO */}
+                  <td>
+
+                    <div className="flex items-center gap-3">
+
+                      <div
+                        className={`w-2.5 h-2.5 rounded-full ${
+                          c.activo
+                            ? "bg-green-500"
+                            : "bg-gray-300"
+                        }`}
+                      />
+
+                      <span
+                        className={`text-sm font-bold ${
+                          c.activo
+                            ? "text-gray-800"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        {c.activo ? "ACTIVO" : "INACTIVO"}
+                      </span>
+
+                    </div>
+
+                  </td>
+
+                  {/* ACTIONS */}
+                  <td className="pr-10">
+
+                    <div className="flex items-center justify-center gap-3">
+
+                      <button
+                        onClick={() => {
+                          setSelectedClient(c);
+                          setModalOpen(true);
+                        }}
+                        className="
+                          w-11 h-11
+                          rounded-2xl
+                          bg-blue-50
+                          text-blue-600
+                          hover:bg-blue-600
+                          hover:text-white
+                          transition-all
+                        "
+                      >
+                        <i className="bi bi-pencil-square"></i>
+                      </button>
+
+                      <button
+                        onClick={() => toggleClient(c)}
+                        className="
+                          w-11 h-11
+                          rounded-2xl
+                          bg-yellow-50
+                          text-yellow-600
+                          hover:bg-yellow-500
+                          hover:text-white
+                          transition-all
+                        "
+                      >
+                        <i className="bi bi-arrow-repeat"></i>
+                      </button>
+
+                      <button
+                        onClick={() => setClientToDelete(c)}
+                        className="
+                          w-11 h-11
+                          rounded-2xl
+                          bg-red-50
+                          text-red-600
+                          hover:bg-red-600
+                          hover:text-white
+                          transition-all
+                        "
+                      >
+                        <i className="bi bi-trash3-fill"></i>
+                      </button>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+    </div>
+
+          {/* MODAL FORMULARIO */}
       <ClientFormModal
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setSelectedClient(null);
+        }}
         initialData={selectedClient}
-        onSubmit={(data) => {
+        onSubmit={async (data) => {
           if (selectedClient) {
-            updateClient(selectedClient.id, data);
+            await updateClient(selectedClient.id, data);
           } else {
-            createClient(data);
+            await createClient(data);
           }
+
+          setModalOpen(false);
+          setSelectedClient(null);
         }}
       />
-    </div>
-  );
+
+      {/* MODAL DELETE */}
+      {clientToDelete && (
+        <div className="modal modal-open">
+
+          <div className="modal-box rounded-3xl">
+
+            <h3 className="font-black text-2xl text-gray-800">
+              Eliminar cliente
+            </h3>
+
+            <p className="py-4 text-gray-500">
+              ¿Deseas eliminar a{" "}
+              <strong>{clientToDelete.nombre}</strong>?
+            </p>
+
+            <div className="modal-action">
+
+              <button
+                className="btn rounded-2xl"
+                onClick={() => setClientToDelete(null)}
+              >
+                Cancelar
+              </button>
+
+              <button
+                className="btn btn-error rounded-2xl"
+                onClick={async () => {
+                  await deleteClient(clientToDelete.id);
+                  setClientToDelete(null);
+                }}
+              >
+                Eliminar
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+  </div>
+);
 }
