@@ -6,22 +6,18 @@ export default function AuditPage() {
   const [loading, setLoading] = useState(true);
   const [isReloading, setIsReloading] = useState(false);
 
-  // Estados del Formulario (Lo que el usuario está seleccionando)
-  const [formSearch, setFormSearch] = useState('');
-  const [formModule, setFormModule] = useState('Todos');
-  const [formAction, setFormAction] = useState('Todas');
-
-  // Estados Aplicados (Lo que realmente filtra la tabla tras darle a "Aplicar")
-  const [appliedSearch, setAppliedSearch] = useState('');
-  const [appliedModule, setAppliedModule] = useState('Todos');
-  const [appliedAction, setAppliedAction] = useState('Todas');
+  const [search, setSearch] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [moduleFilter, setModuleFilter] = useState('ALL');
+  const [actionFilter, setActionFilter] = useState('ALL');
 
   const fetchLogs = async (isManualReload = false) => {
     if (isManualReload) setIsReloading(true);
     try {
       const data = await getAuditLogs();
-      // Ordenar por fecha descendente (más recientes primero) por si el backend no lo hace
-      const sortedData = (data.items || data || []).sort((a, b) => new Date(b.createdAt || b.fecha) - new Date(a.createdAt || a.fecha));
+      const sortedData = (data.items || data || []).sort(
+        (a, b) => new Date(b.createdAt || b.fecha) - new Date(a.createdAt || a.fecha)
+      );
       setLogs(sortedData);
     } catch (err) {
       console.error(err.message);
@@ -33,182 +29,297 @@ export default function AuditPage() {
 
   useEffect(() => { fetchLogs(); }, []);
 
-  // Opciones dinámicas para los selects basadas en los datos reales
-  const uniqueModules = ['Todos', ...new Set(logs.map(l => l.resource).filter(Boolean))];
-  const uniqueActions = ['Todas', ...new Set(logs.map(l => l.action).filter(Boolean))];
+  const uniqueModules = [...new Set(logs.map((l) => l.resource).filter(Boolean))];
+  const uniqueActions = [...new Set(logs.map((l) => l.action).filter(Boolean))];
 
-  // Funciones de los Botones
-  const handleApplyFilters = () => {
-    setAppliedSearch(formSearch);
-    setAppliedModule(formModule);
-    setAppliedAction(formAction);
-  };
-
-  const handleClearFilters = () => {
-    setFormSearch('');
-    setFormModule('Todos');
-    setFormAction('Todas');
-    setAppliedSearch('');
-    setAppliedModule('Todos');
-    setAppliedAction('Todas');
-  };
-
-  const handleReload = () => {
-    fetchLogs(true);
-  };
-
-  // Lógica de Filtrado con los estados aplicados
-  const filteredLogs = logs.filter(log => {
-    const searchLower = appliedSearch.toLowerCase();
-    const matchSearch = appliedSearch ? (
-      (log.usuario || '').toLowerCase().includes(searchLower) ||
-      (log.details?.mensaje || log.details?.nombre || '').toLowerCase().includes(searchLower) ||
-      (log.resourceId || '').toLowerCase().includes(searchLower)
-    ) : true;
-
-    const matchModule = appliedModule !== 'Todos' ? log.resource === appliedModule : true;
-    const matchAction = appliedAction !== 'Todas' ? log.action === appliedAction : true;
-
+  const filteredLogs = logs.filter((log) => {
+    const q = search.toLowerCase();
+    const matchSearch = search
+      ? (log.usuario || '').toLowerCase().includes(q) ||
+        (log.details?.mensaje || log.details?.nombre || '').toLowerCase().includes(q) ||
+        (log.resourceId || '').toLowerCase().includes(q)
+      : true;
+    const matchModule = moduleFilter !== 'ALL' ? log.resource === moduleFilter : true;
+    const matchAction = actionFilter !== 'ALL' ? log.action === actionFilter : true;
     return matchSearch && matchModule && matchAction;
   });
 
-  // Utilidades de renderizado
+  const totalLogs = logs.length;
+  const createLogs = logs.filter((l) => {
+    const a = (l.action || '').toUpperCase();
+    return a.includes('CREA') || a.includes('POST');
+  }).length;
+  const deleteLogs = logs.filter((l) => {
+    const a = (l.action || '').toUpperCase();
+    return a.includes('ELIMIN') || a.includes('DELETE');
+  }).length;
+
   const formatDate = (dateString) => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-MX', { 
-      year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute:'2-digit' 
+    return new Date(dateString).toLocaleDateString('es-MX', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit',
     });
   };
 
   const getEventStyle = (action) => {
-    const act = action?.toUpperCase() || '';
-    if (act.includes('CREA') || act.includes('POST')) return { color: 'text-emerald-700', bg: 'bg-emerald-100', icon: 'M12 4v16m8-8H4' };
-    if (act.includes('ELIMIN') || act.includes('DELETE')) return { color: 'text-rose-700', bg: 'bg-rose-100', icon: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' };
-    if (act.includes('LOGIN')) return { color: 'text-purple-700', bg: 'bg-purple-100', icon: 'M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1' };
-    return { color: 'text-blue-700', bg: 'bg-blue-100', icon: 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' };
+    const act = (action || '').toUpperCase();
+    if (act.includes('CREA') || act.includes('POST'))
+      return { color: 'text-emerald-700', bg: 'bg-emerald-100' };
+    if (act.includes('ELIMIN') || act.includes('DELETE'))
+      return { color: 'text-red-700', bg: 'bg-red-100' };
+    if (act.includes('LOGIN'))
+      return { color: 'text-purple-700', bg: 'bg-purple-100' };
+    return { color: 'text-blue-700', bg: 'bg-blue-100' };
   };
 
-  return (
-    <div className="space-y-4">
-      
-      {/* 1. CABECERA (Al estilo de la referencia) */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 text-xs text-slate-400 mb-1 font-semibold">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-          <span>/ Auditoría</span>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F7F2]">
+        <div className="w-20 h-20 rounded-[28px] bg-white border border-[#E7ECDD] shadow-sm flex items-center justify-center">
+          <span className="loading loading-spinner loading-lg text-[#7E8B63]"></span>
         </div>
-        <h1 className="text-2xl font-bold text-slate-800">Auditoría del Sistema</h1>
-        <p className="text-slate-500 text-sm mt-1">Consulta eventos, acciones y trazabilidad del ERP Crochet.</p>
+        <p className="mt-5 text-gray-500 font-medium tracking-wide">Cargando auditoría...</p>
       </div>
+    );
+  }
 
-      {/* 2. BARRA DE FILTROS AVANZADA */}
-      <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-5 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-          
-          <div className="md:col-span-4">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Buscar Evento</label>
-            <div className="relative flex items-center">
-              <input type="text" placeholder="Buscar folio, nombre, usuario, recurso..." 
-                value={formSearch} onChange={(e) => setFormSearch(e.target.value)}
-                className="w-full pl-4 pr-10 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4B5E4B] text-slate-700" />
-              
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+  return (
+    <div className="min-h-screen bg-[#F5F7F2] px-2 md:px-4 py-8 w-full">
+      <div className="max-w-[2200px] mx-auto">
+
+        {/* HEADER */}
+        <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-10">
+          <div>
+            <div className="flex items-center gap-5 mb-4">
+              <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-[#DDE8CF] to-[#8FA878] text-[#5F6F52] flex items-center justify-center shadow-md border border-[#D4DFC5]">
+                <i className="bi bi-shield-check text-2xl"></i>
+              </div>
+              <div>
+                <p className="uppercase tracking-[0.35em] text-xs font-bold text-[#7E8B63]">
+                  Gestión ERP
+                </p>
+                <h1 className="text-5xl font-black text-[#1F2937] leading-none mt-1">
+                  Auditoría
+                </h1>
+              </div>
+            </div>
+            <p className="text-gray-500 text-lg max-w-2xl">
+              Consulta eventos, acciones y trazabilidad del ERP desde una interfaz limpia y centralizada.
+            </p>
+          </div>
+
+          {/* SEARCH + ACTIONS */}
+          <div className="flex flex-col lg:flex-row gap-4 w-full xl:w-auto">
+
+            {/* SEARCH */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Buscar evento, usuario..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="
+                  w-full lg:w-[360px] h-[58px] rounded-2xl
+                  border border-[#E5EBDD] bg-white
+                  pl-5 pr-14 text-sm font-medium text-gray-700
+                  outline-none transition-all shadow-sm
+                  focus:border-[#7E8B63] focus:ring-4 focus:ring-[#7E8B63]/10
+                "
+              />
+              <i className="bi bi-search absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
+            </div>
+
+            {/* FILTRAR */}
+            <div className="relative">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="
+                  h-[58px] px-6 rounded-2xl bg-white border border-[#E5EBDD]
+                  text-gray-700 font-semibold flex items-center gap-3 shadow-sm
+                  hover:border-[#7E8B63] hover:bg-[#FAFBF8] transition-all
+                "
+              >
+                <i className="bi bi-sliders text-lg"></i>
+                Filtrar
+              </button>
+
+              {showFilters && (
+                <div className="absolute right-0 mt-3 w-[280px] bg-white border border-[#E8EDE0] rounded-3xl shadow-xl p-6 z-50">
+                  <div className="space-y-5">
+                    <div>
+                      <label className="text-xs uppercase tracking-widest text-gray-400 font-bold block mb-2">Módulo</label>
+                      <select
+                        value={moduleFilter}
+                        onChange={(e) => setModuleFilter(e.target.value)}
+                        className="w-full rounded-2xl border border-[#E5EBDD] bg-[#EEF2E7] px-4 py-3 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-[#7E8B63]/20"
+                      >
+                        <option value="ALL">Todos los módulos</option>
+                        {uniqueModules.map((m) => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs uppercase tracking-widest text-gray-400 font-bold block mb-2">Acción</label>
+                      <select
+                        value={actionFilter}
+                        onChange={(e) => setActionFilter(e.target.value)}
+                        className="w-full rounded-2xl border border-[#E5EBDD] bg-[#EEF2E7] px-4 py-3 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-[#7E8B63]/20"
+                      >
+                        <option value="ALL">Todas las acciones</option>
+                        {uniqueActions.map((a) => <option key={a} value={a}>{a}</option>)}
+                      </select>
+                    </div>
+                    <button
+                      onClick={() => { setModuleFilter('ALL'); setActionFilter('ALL'); setShowFilters(false); }}
+                      className="w-full py-2.5 rounded-2xl border border-[#E5EBDD] text-sm font-semibold text-gray-500 hover:bg-[#F4F6F0] transition-all"
+                    >
+                      Limpiar filtros
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* RECARGAR */}
+            <button
+              onClick={() => fetchLogs(true)}
+              disabled={isReloading}
+              className={`h-[58px] px-6 rounded-2xl bg-[#1F2937] text-white font-semibold flex items-center gap-3 shadow-lg hover:opacity-90 transition-all ${isReloading ? 'opacity-60 cursor-not-allowed' : ''}`}
+            >
+              <i className={`bi bi-arrow-clockwise text-lg ${isReloading ? 'animate-spin' : ''}`}></i>
+              Recargar
+            </button>
+          </div>
+        </div>
+
+        {/* STATS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div className="bg-white border border-[#E5EBDD] rounded-[32px] p-7 flex items-center justify-between shadow-sm">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-gray-400 font-bold">Total Eventos</p>
+              <h3 className="text-5xl font-black mt-2 text-gray-700">{totalLogs}</h3>
+            </div>
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-gray-100">
+              <i className="bi bi-journal-text text-2xl text-gray-700"></i>
             </div>
           </div>
 
-          <div className="md:col-span-3">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Módulo</label>
-            <select value={formModule} onChange={(e) => setFormModule(e.target.value)}
-              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4B5E4B] text-slate-700">
-              {uniqueModules.map(mod => <option key={mod} value={mod}>{mod === 'Todos' ? 'Todos los módulos' : mod}</option>)}
-            </select>
+          <div className="bg-white border border-[#E5EBDD] rounded-[32px] p-7 flex items-center justify-between shadow-sm">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-gray-400 font-bold">Creaciones</p>
+              <h3 className="text-5xl font-black mt-2 text-green-700">{createLogs}</h3>
+            </div>
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-green-100">
+              <i className="bi bi-plus-circle-fill text-2xl text-green-700"></i>
+            </div>
           </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Acción</label>
-            <select value={formAction} onChange={(e) => setFormAction(e.target.value)}
-              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4B5E4B] text-slate-700">
-              {uniqueActions.map(act => <option key={act} value={act}>{act === 'Todas' ? 'Todas las acciones' : act}</option>)}
-            </select>
-          </div>
-
-          <div className="md:col-span-3 flex gap-2">
-            <button onClick={handleApplyFilters} className="flex-1 bg-[#4B5E4B] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#3a493a] transition-colors shadow-sm">
-              Aplicar
-            </button>
-            <button onClick={handleClearFilters} className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors">
-              Limpiar
-            </button>
-            <button onClick={handleReload} disabled={isReloading} className={`px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors ${isReloading ? 'opacity-50 cursor-not-allowed' : ''}`} title="Recargar">
-              <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isReloading ? 'animate-spin text-[#4B5E4B]' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-            </button>
+          <div className="bg-white border border-[#E5EBDD] rounded-[32px] p-7 flex items-center justify-between shadow-sm">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-gray-400 font-bold">Eliminaciones</p>
+              <h3 className="text-5xl font-black mt-2 text-red-600">{deleteLogs}</h3>
+            </div>
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-red-100">
+              <i className="bi bi-trash3-fill text-2xl text-red-600"></i>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* 3. TABLA DE DATOS (Estilo Denso y Profesional) */}
-      <div className="bg-white border border-slate-200/60 rounded-xl shadow-sm overflow-hidden min-h-[400px]">
-        {loading ? (
-          <div className="flex justify-center items-center h-40">
-            <span className="loading loading-spinner loading-md text-[#4B5E4B]"></span>
+        {/* TABLE */}
+        <div className="bg-white border border-[#E5EBDD] rounded-[36px] shadow-sm overflow-hidden">
+
+          <div className="px-8 py-6 border-b border-[#EEF2E7]">
+            <h2 className="text-xl font-black text-gray-800">Registro de eventos</h2>
+            <p className="text-sm text-gray-400 mt-1">{filteredLogs.length} eventos registrados</p>
           </div>
-        ) : filteredLogs.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse whitespace-nowrap">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    <th className="px-4 py-3">Fecha</th>
-                    <th className="px-4 py-3">Evento</th>
-                    <th className="px-4 py-3">Recurso</th>
-                    <th className="px-4 py-3">Usuario</th>
-                    <th className="px-4 py-3">Detalle</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm">
-                  {filteredLogs.map((log) => {
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-[#FAFBF8] border-b border-[#EEF2E7]">
+                  <th className="text-left pl-10 py-5 text-xs uppercase tracking-widest text-gray-400 font-black">Fecha</th>
+                  <th className="text-left py-5 text-xs uppercase tracking-widest text-gray-400 font-black">Evento</th>
+                  <th className="text-left py-5 text-xs uppercase tracking-widest text-gray-400 font-black">Recurso</th>
+                  <th className="text-left py-5 text-xs uppercase tracking-widest text-gray-400 font-black">Usuario</th>
+                  <th className="text-left pr-10 py-5 text-xs uppercase tracking-widest text-gray-400 font-black">Detalle</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredLogs.length > 0 ? (
+                  filteredLogs.map((log) => {
                     const style = getEventStyle(log.action);
                     return (
-                      <tr key={log.id || log._id} className="border-b border-slate-100 hover:bg-slate-50/80 transition-colors even:bg-slate-50/40">
-                        <td className="px-4 py-3 text-slate-600 font-medium text-xs">
-                          {formatDate(log.createdAt || log.fecha)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${style.bg} ${style.color}`}>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={style.icon} /></svg>
-                            {log.action || 'SISTEMA'}
+                      <tr key={log.id || log._id} className="border-b border-[#F3F5EF] hover:bg-[#FAFBF8] transition-all">
+
+                        {/* FECHA */}
+                        <td className="pl-10 py-6">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-[#E8F0DD] text-[#5F6F52] flex items-center justify-center shadow-sm border border-[#D7E4C0]">
+                              <i className="bi bi-clock-history text-lg"></i>
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-gray-800 text-sm">{formatDate(log.createdAt || log.fecha)}</h3>
+                              <p className="text-xs text-gray-400 mt-1">ID: {(log.id || log._id || '').toString().slice(0, 8)}</p>
+                            </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="font-bold text-slate-700 text-xs">{log.resource || '-'}</div>
-                          {log.resourceId && <div className="text-[10px] text-slate-400 font-mono mt-0.5">ID: {log.resourceId.substring(0, 8)}...</div>}
+
+                        {/* EVENTO */}
+                        <td>
+                          <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${style.bg} ${style.color}`}>
+                            {log.action || 'SISTEMA'}
+                          </span>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="font-bold text-slate-700 text-xs">{log.usuario || 'Sistema'}</div>
-                          {log.userId && <div className="text-[10px] text-slate-400 font-mono mt-0.5">UID: {log.userId.substring(0, 8)}...</div>}
+
+                        {/* RECURSO */}
+                        <td>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-bold text-gray-800">{log.resource || '-'}</span>
+                            {log.resourceId && (
+                              <span className="text-xs text-gray-400 font-mono">ID: {log.resourceId.substring(0, 8)}...</span>
+                            )}
+                          </div>
                         </td>
-                        <td className="px-4 py-3 text-slate-500 text-xs max-w-xs truncate" title={JSON.stringify(log.details)}>
-                          {log.details?.mensaje || log.details?.nombre || 'Registro de transacción general'}
+
+                        {/* USUARIO */}
+                        <td>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-700">{log.usuario || 'Sistema'}</span>
+                            {log.userId && (
+                              <span className="text-xs text-gray-400 font-mono">UID: {log.userId.substring(0, 8)}...</span>
+                            )}
+                          </div>
                         </td>
+
+                        {/* DETALLE */}
+                        <td className="pr-10">
+                          <span className="text-sm text-gray-500 max-w-xs truncate block" title={JSON.stringify(log.details)}>
+                            {log.details?.mensaje || log.details?.nombre || 'Registro de transacción general'}
+                          </span>
+                        </td>
+
                       </tr>
                     );
-                  })}
-                </tbody>
-              </table>
-            </div>
-        ) : (
-            <div className="p-16 flex flex-col items-center text-center">
-                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                </div>
-                <h3 className="text-sm font-bold text-slate-700">No hay registros</h3>
-                <p className="text-slate-500 text-xs mt-1">Ajusta los filtros o presiona "Limpiar" para ver resultados.</p>
-            </div>
-        )}
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="py-28 text-center">
+                      <div className="flex flex-col items-center">
+                        <div className="w-24 h-24 rounded-full bg-[#F4F6F0] flex items-center justify-center mb-5">
+                          <i className="bi bi-search text-4xl text-gray-300"></i>
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-700">Sin resultados</h3>
+                        <p className="text-gray-400 mt-2">No existen eventos que coincidan con el filtro.</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-      <div className="text-right text-xs text-slate-400 pr-2">Mostrando {filteredLogs.length} eventos registrados</div>
     </div>
   );
 }
