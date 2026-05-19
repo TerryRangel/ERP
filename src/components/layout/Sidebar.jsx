@@ -128,6 +128,13 @@ export default function Sidebar() {
           </NavLink>
         </Can>
 
+        <Can I="clients:read">
+          <NavLink to="/clients" style={linkStyle}>
+            <i className="bi bi-person-fill" style={{ fontSize: "18px" }} />
+            <span>Clientes</span>
+          </NavLink>
+        </Can>
+
       </nav>
 
       {/* Sección Inferior - Estado y Acción */}
