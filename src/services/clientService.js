@@ -2,8 +2,10 @@ import { data } from 'react-router-dom';
 import api from './api';
 
 export const clientService = {
-    getAll: async () => {
-        const res = await api.get('/clients',);
+    getAll: async (filters) => {
+        const res = await api.get('/clients',{
+            params: filters
+        });
         return res.data;
     },
 

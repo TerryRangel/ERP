@@ -21,7 +21,6 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/clients" element={<ClientsPage />} />
           
           {/* --- RUTAS BLINDADAS POR PERMISOS --- */}
           <Route 
@@ -58,6 +57,15 @@ export default function AppRoutes() {
                 <ProductsPage />
               </RequirePermission>
             } 
+          />
+
+          <Route 
+            path='/clients'
+            element={
+              <RequirePermission I="clients:read">
+                <ClientsPage />
+              </RequirePermission>
+            }
           />
           {/* ------------------------------------ */}
 
