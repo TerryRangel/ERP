@@ -19,6 +19,11 @@ export const clientService = {
         return res.data;
     },
 
+    registerClient: async (data) => {
+        const res = await api.post('/auth/register', data);
+        return res.data;
+    },
+
     update: async (id, data) => {
         const res = await api.patch(`/clients/${id}`, data);
         return res.data;    
