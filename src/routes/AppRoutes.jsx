@@ -9,6 +9,7 @@ import SuppliersPage from '../pages/Suppliers/SuppliersPage';
 import ProductsPage from '../pages/Products/ProductsPage';
 import ClientsPage from '../pages/Clients/ClientsPage'; 
 import NoAutorizado from '../components/layout/nopermission';
+import InventoryPage from '../pages/Inventory/InventoryPage';
 
 export default function AppRoutes() {
   return (
@@ -64,6 +65,15 @@ export default function AppRoutes() {
             element={
               <RequirePermission I="clients:read">
                 <ClientsPage />
+              </RequirePermission>
+            }
+          />
+
+          <Route 
+            path='/inventory'
+            element={
+              <RequirePermission I="inventory:read">
+                <InventoryPage />
               </RequirePermission>
             }
           />
