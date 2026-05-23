@@ -23,7 +23,7 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
         setNombre(productToEdit.nombre || "");
         setDescripcion(productToEdit.descripcion || "");
         setPrecioVenta(productToEdit.precioVenta || "");
-        setStock(productToEdit.stock || "");
+        setStock(productToEdit.stock || "0");
         setCategoria(productToEdit.categoria || "Flores");
         setImagenPreview(productToEdit.imagenUrl || null); 
         setImagenArchivo(null);
@@ -52,15 +52,12 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
     try {
       let finalImagenUrl = imagenPreview;
 
-      // --- INICIO DE LÓGICA DE CLOUDINARY ---
       if (imagenArchivo) {
-        //Preparamos los datos
         const formData = new FormData();
         formData.append("file", imagenArchivo);
         formData.append("upload_preset", "erp_productos");
         formData.append("cloud_name", "dsbwrorlk");
 
-        // Hacemos la petición directa a Cloudinary
         const res = await fetch("https://api.cloudinary.com/v1_1/dsbwrorlk/image/upload", {
           method: "POST",
           body: formData,
@@ -68,14 +65,12 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
 
         const cloudData = await res.json();
         
-        // Obtenemos el link seguro
         if (cloudData.secure_url) {
           finalImagenUrl = cloudData.secure_url;
         } else {
           throw new Error("No se pudo obtener la URL de la imagen");
         }
       }
-      // --- FIN DE LÓGICA DE CLOUDINARY ---
 
       const productData = { 
         sku, 
@@ -114,8 +109,8 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
 
         <div className="mb-8">
           <div className="flex items-center gap-2 text-xs uppercase tracking-widest !text-[#8d9b70] font-semibold mb-2">
-            <i className="bi bi-box-seam-fill"></i>
-            Gestión de Inventario
+            <i className="bi bi-tags-fill"></i>
+            Gestión Comercial
           </div>
           <h3 className="text-xl font-medium !text-[#1F2937]">
             {productToEdit ? "Editar Producto" : "Nuevo Producto"}
@@ -169,7 +164,7 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
             <label className="label-text text-[11px] uppercase tracking-wider !text-[#8d9b70] font-semibold mb-2 ml-1">SKU (Código)</label>
             <div className="relative w-full">
               <i className="bi bi-upc-scan absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none"></i>
-              <input type="text" placeholder="Ej: AMIG-01" className={inputBaseClass} value={sku} onChange={(e) => setSku(e.target.value)} required disabled={subiendo}/>
+              <input type="text" placeholder="Ej: AMIG-01" className={inputBaseClass} value={sku} onChange={(e) => setSku(e.target.value)} required disabled={subiendo || !!productToEdit}/>
             </div>
           </div>
 
@@ -189,11 +184,23 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
                 <input type="number" step="0.01" placeholder="0.00" className={inputBaseClass} value={precioVenta} onChange={(e) => setPrecioVenta(e.target.value)} required disabled={subiendo}/>
               </div>
             </div>
+            
             <div className="form-control w-full relative">
-              <label className="label-text text-[11px] uppercase tracking-wider !text-[#8d9b70] font-semibold mb-2 ml-1">Stock Inicial</label>
+              <label className="label-text text-[11px] uppercase tracking-wider !text-[#8d9b70] font-semibold mb-2 ml-1">
+                {productToEdit ? "Stock Actual (Ir a Inventario)" : "Stock Inicial"}
+              </label>
               <div className="relative w-full">
                 <i className="bi bi-boxes absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none"></i>
-                <input type="number" placeholder="0" className={inputBaseClass} value={stock} onChange={(e) => setStock(e.target.value)} required disabled={subiendo}/>
+                <input 
+                  type="number" 
+                  placeholder="0" 
+                  className={`${inputBaseClass} ${productToEdit ? "opacity-60 cursor-not-allowed" : ""}`} 
+                  value={stock} 
+                  onChange={(e) => setStock(e.target.value)} 
+                  required 
+                  disabled={subiendo || !!productToEdit} 
+                  title={productToEdit ? "Para modificar el stock, utiliza los botones de la página de Inventario." : "Ingresa el inventario inicial."}
+                />
               </div>
             </div>
           </div>

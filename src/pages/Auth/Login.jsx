@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { clientService } from '../../services/clientService';
 import "bootstrap-icons/font/bootstrap-icons.css";
-import fondoLogin from '../../assets/fondo-login.jpg';
 import ClientFormModal from '../../components/ui/ClientFormModal.jsx';
 import interiorStyleScene from "../../assets/interior-style-scene.jpg";
 
@@ -13,8 +12,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
-  const navigate = useNavigate();
-
+  
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -167,7 +165,7 @@ export default function Login() {
                   items-center
                   justify-center
                 "
-              >
+                >
                 <i className="bi bi-person text-white text-2xl"></i>
               </div>
 
@@ -340,7 +338,6 @@ export default function Login() {
               "
             >
               <i className="bi bi-google text-2xl"></i>
-
               Continuar con Google
             </button>
           </form>
@@ -400,21 +397,23 @@ export default function Login() {
           <div className="flex justify-center mb-6">
             <i className="bi bi-heart text-5xl"></i>
           </div>
-          <div className = "text-center pt-4">
-            <p className = "text-sm text-gray-400">
+          <div className="text-center pt-4">
+            <p className="text-sm text-gray-100">
               ¿No tienes cuenta? 
             </p>
             <button 
-              type = "button"
-              className = "mt-2 text-[#8FA878] font-semibold hover:underline"
+              type="button"
+              className="mt-2 text-[#8FA878] font-semibold hover:underline"
               onClick={() => setRegisterOpen(true)}
-              >
-                Registrate
+            >
+              Registrate
             </button>
           </div>
-        </form>
+        </div>
 
-          <p className="text-3xl leading-relaxed text-center font-light">
+        {/* CITA EN EL MEDIO */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <p className="text-3xl leading-relaxed text-center font-light text-white max-w-sm drop-shadow-lg">
             Cada puntada lleva dedicación,
             cada tejido lleva amor.
           </p>
@@ -516,11 +515,12 @@ export default function Login() {
           </div>
         </div>
       </div>
+
       <ClientFormModal 
         isOpen={registerOpen}
         onClose={() => setRegisterOpen(false)}
-        initialData= {null}
-        onSubmit= {async (data) => {
+        initialData={null}
+        onSubmit={async (data) => {
           try {
             await clientService.registerClient(data)
             setRegisterOpen(false);
@@ -532,7 +532,5 @@ export default function Login() {
         }}
       />
     </div>
-    
-
   );
 }

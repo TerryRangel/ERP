@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { productService } from "../../services/productService";
 import ProductModal from "../../components/ui/ProductModal";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import {Can} from "../../components/Can";
+import { Can } from "../../components/can.jsx";
 
 export default function ProductsPage() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [busqueda, setBusqueda] = useState("");
 
   // Estados para controlar el modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,107 +49,160 @@ export default function ProductsPage() {
     }
   };
 
+  const productosFiltrados = productos.filter(p => 
+    (p.nombre?.toLowerCase() || "").includes(busqueda.toLowerCase()) ||
+    (p.sku?.toLowerCase() || "").includes(busqueda.toLowerCase())
+  );
+
   if (cargando) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-[#f8f8f6]">
-        <span className="loading loading-spinner loading-lg text-[#8d9b70]"></span>
-        <p className="text-sm tracking-wide text-gray-400 animate-pulse">Cargando productos...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F7F2]">
+        <div className="w-20 h-20 rounded-[28px] bg-white border border-[#E7ECDD] shadow-sm flex items-center justify-center">
+          <span className="loading loading-spinner loading-lg text-[#7E8B63]"></span>
+        </div>
+        <p className="mt-5 text-gray-500 font-medium tracking-wide">Cargando catálogo...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f8f6] p-6 md:p-10 font-sans text-[#2D2D2D] transition-all duration-300">
-      
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-        <div>
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#8d9b70] font-semibold mb-3">
-            <i className="bi bi-box-seam-fill"></i>
-            Inventario y Catálogo
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[#1F2937]">Productos</h1>
-          <p className="text-gray-400 mt-2 text-sm">Administra los productos de crochet y su stock.</p>
-        </div>
-        <Can I="products:create">
-        <button
-          onClick={handleOpenNew}
-          className="
-            group relative overflow-hidden flex items-center gap-3 px-6 py-3 rounded-2xl
-            bg-gradient-to-r from-[#8d9b70] to-[#74845a] text-white font-semibold
-            shadow-lg shadow-[#8d9b70]/20 transition-all duration-300
-            hover:scale-[1.02] hover:shadow-xl active:scale-95
-          "
-        >
-          <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-          <i className="bi bi-plus-circle-fill text-lg relative z-10"></i>
-          <span className="relative z-10">Nuevo Producto</span>
-        </button>
-        </Can>
-      </div> 
-  
-
-      {productos.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {productos.map((prod) => (
-            <div key={prod.id} className="group relative bg-white border border-[#ECECE7] rounded-3xl overflow-hidden shadow-[0_8px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hover:shadow-[0_15px_35px_rgba(141,155,112,0.1)] hover:-translate-y-1">
-             
-             <Can I="products:create">
-              <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                <button onClick={() => handleEdit(prod)} className="w-9 h-9 rounded-xl bg-white text-[#6A734D] flex items-center justify-center hover:bg-[#8d9b70] hover:text-white shadow-md transition-colors border border-[#ECECE7]">
-                  <i className="bi bi-pencil-square"></i>
-                </button>
-                <button onClick={() => handleDelete(prod.id)} className="w-9 h-9 rounded-xl bg-white text-[#E25B5B] flex items-center justify-center hover:bg-[#E25B5B] hover:text-white shadow-md transition-colors border border-[#ECECE7]">
-                  <i className="bi bi-trash3-fill"></i>
-                </button>
+    <div className="min-h-screen bg-[#F5F7F2] px-2 md:px-4 py-8 w-full">
+      <div className="max-w-[2200px] mx-auto">
+        <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-10">
+          <div>
+            <div className="flex items-center gap-5 mb-4">
+              <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-[#DDE8CF] to-[#8FA878] text-[#5F6F52] flex items-center justify-center shadow-md border border-[#D4DFC5]">
+                <i className="bi bi-bag-fill text-2xl"></i>
               </div>
-              </Can>
-
-              <div className="relative aspect-[4/3] bg-[#f8f8f6] flex items-center justify-center border-b border-[#ECECE7]">
-                {/* CONDICIONAL: ¿Tiene foto guardada en la base de datos? */}
-                {prod.imagenUrl ? (
-                  <img 
-                    src={prod.imagenUrl} 
-                    alt={prod.nombre} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                  />
-                ) : (
-                  <i className="bi bi-box2 text-4xl text-[#DCE3CF]"></i>
-                )}
-                <div className="absolute top-4 left-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-semibold bg-[#EEF1E7] text-[#6A734D] border border-[#DCE3CF] shadow-sm uppercase tracking-wider">
-                  {prod.categoria || "General"}
-                </div>
-              </div>
-
-              <div className="p-6 bg-white">
-                <p className="text-[10px] text-gray-400 uppercase font-semibold tracking-wider mb-1">SKU: {prod.sku}</p>
-                <h3 className="text-[#1F2937] font-semibold text-base mb-2 line-clamp-1">{prod.nombre}</h3>
-                <div className="flex items-end justify-between mt-4">
-                  <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Precio</p>
-                    <p className="text-[#8d9b70] font-bold text-xl">${parseFloat(prod.precioVenta || 0).toFixed(2)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-400 mb-0.5">Stock</p>
-                    <span className="inline-flex items-center justify-center bg-[#F9FAF6] text-[#6A734D] border border-[#DCE3CF] px-3 py-1 rounded-xl text-sm font-semibold">
-                      {prod.stock}
-                    </span>
-                  </div>
-                </div>
+              <div>
+                <p className="uppercase tracking-[0.35em] text-xs font-bold text-[#7E8B63]">
+                  Gestión ERP
+                </p>
+                <h1 className="text-5xl font-black text-[#1F2937] leading-none mt-1">
+                  Productos
+                </h1>
               </div>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="bg-white border border-[#ECECE7] rounded-3xl p-24 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
-          <div className="flex flex-col items-center justify-center">
-            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#EEF1E7] to-[#DDE5CD] flex items-center justify-center mb-6 shadow-sm">
-              <i className="bi bi-box2-heart-fill text-4xl text-[#8d9b70]"></i>
-            </div>
-            <h3 className="text-xl font-semibold text-[#1F2937] mb-2">No hay productos</h3>
-            <p className="text-sm text-gray-400 max-w-sm">Agrega un nuevo producto para comenzar a gestionar tu catálogo e inventario.</p>
+            <p className="text-gray-500 text-lg max-w-2xl">
+              Administra la información comercial, precios y fotos de tus artículos desde una interfaz limpia y centralizada.
+            </p>
           </div>
-        </div>
-      )}
+
+          {/* ACCIONES Y BUSCADOR */}
+          <div className="flex flex-col lg:flex-row gap-4 w-full xl:w-auto">
+            
+            {/* <-- COMPONENTE DEL BUSCADOR --> */}
+            <div className="relative">
+              <input 
+                type="text" 
+                placeholder="Buscar por nombre o SKU..." 
+                className="
+                  w-full lg:w-[360px] h-[58px] rounded-2xl
+                  border border-[#E5EBDD] bg-white
+                  pl-5 pr-14 text-sm font-medium text-gray-700
+                  outline-none transition-all shadow-sm
+                  focus:border-[#7E8B63] focus:ring-4 focus:ring-[#7E8B63]/10
+                "
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+              />
+              <i className="bi bi-search absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
+            </div>
+
+            <Can I="products:create">
+              <button
+                onClick={handleOpenNew}
+                className="
+                  h-[58px] px-7 rounded-2xl bg-[#1F2937] text-white
+                  font-semibold flex items-center justify-center gap-3 shadow-lg
+                  hover:opacity-90 transition-all
+                "
+              >
+                <i className="bi bi-plus-circle-fill"></i>
+                Nuevo Producto
+              </button>
+            </Can>
+          </div>
+        </div> 
+    
+        {/* GRID DE PRODUCTOS */}
+        {productosFiltrados.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {productosFiltrados.map((prod) => (
+              <div key={prod.id} className="group relative bg-white border border-[#E5EBDD] rounded-3xl overflow-hidden shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                
+                {/* IMAGEN Y CATEGORÍA */}
+                <div className="relative aspect-[4/3] bg-[#f8f8f6] flex items-center justify-center border-b border-[#E5EBDD]">
+                  {prod.imagenUrl ? (
+                    <img 
+                      src={prod.imagenUrl} 
+                      alt={prod.nombre} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                    />
+                  ) : (
+                    <i className="bi bi-box2 text-4xl text-[#DCE3CF]"></i>
+                  )}
+                  <div className="absolute top-4 left-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold bg-white text-[#7E8B63] border border-[#E5EBDD] shadow-sm uppercase tracking-wider">
+                    {prod.categoria || "General"}
+                  </div>
+                </div>
+
+                {/* INFORMACIÓN Y ACCIONES */}
+                <div className="p-6 bg-white">
+                  <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">SKU: {prod.sku}</p>
+                  <h3 className="text-[#1F2937] font-bold text-lg mb-2 line-clamp-1">{prod.nombre}</h3>
+                  
+                  <div className="flex items-end justify-between mt-4 pt-4 border-t border-[#F5F7F2]">
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5 font-medium">Precio de Venta</p>
+                      <p className="text-[#7E8B63] font-black text-xl">${parseFloat(prod.precioVenta || 0).toFixed(2)}</p>
+                    </div>
+                    
+                    {/* BOTONES */}
+                    <Can I="products:create">
+                      <div className="flex gap-2">
+                        <Can I="products:update">
+                          <button 
+                            onClick={() => handleEdit(prod)} 
+                            className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all" 
+                            title="Editar Producto"
+                          >
+                            <i className="bi bi-pencil-square text-lg"></i>
+                          </button>
+                        </Can>
+                        <Can I="products:delete">
+                          <button 
+                            onClick={() => handleDelete(prod.id)} 
+                            className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all" 
+                            title="Eliminar Producto"
+                          >
+                            <i className="bi bi-trash3-fill text-lg"></i>
+                          </button>
+                        </Can>
+                      </div>
+                    </Can>
+
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white border border-[#E5EBDD] rounded-[36px] p-24 text-center shadow-sm">
+            <div className="flex flex-col items-center justify-center">
+              <div className="w-24 h-24 rounded-3xl bg-[#F5F7F2] flex items-center justify-center mb-6">
+                <i className="bi bi-search text-4xl text-gray-300"></i>
+              </div>
+              <h3 className="text-xl font-bold text-gray-700 mb-2">Sin resultados</h3>
+              <p className="text-sm text-gray-400 max-w-sm">
+                {productos.length === 0 
+                  ? "Agrega tu primer artículo para comenzar a armar tu catálogo comercial." 
+                  : "No se encontraron productos que coincidan con tu búsqueda."}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
 
       <ProductModal 
         isOpen={isModalOpen} 
