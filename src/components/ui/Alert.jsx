@@ -10,7 +10,8 @@ export default function ConfirmAlert({
   confirmText = "Sí, continuar",
   cancelText = "Cancelar",
   type = "danger", // Opciones: 'danger', 'warning', 'info', 'success'
-  isLoading = false
+  isLoading = false,
+  showCancel = true 
 }) {
   if (!isOpen) return null;
 
@@ -20,25 +21,25 @@ export default function ConfirmAlert({
       icon: "bi-exclamation-triangle-fill",
       iconColor: "text-red-500",
       iconBg: "bg-red-100",
-      btnBg: "bg-red-500 hover:bg-red-600 shadow-red-200",
+      btnBg: "!bg-red-500 hover:!bg-red-600 shadow-red-200/50",
     },
     warning: {
       icon: "bi-exclamation-circle-fill",
       iconColor: "text-orange-500",
       iconBg: "bg-orange-100",
-      btnBg: "bg-orange-500 hover:bg-orange-600 shadow-orange-200",
+      btnBg: "!bg-orange-500 hover:!bg-orange-600 shadow-orange-200/50",
     },
     info: {
       icon: "bi-info-circle-fill",
       iconColor: "text-blue-500",
       iconBg: "bg-blue-100",
-      btnBg: "bg-blue-500 hover:bg-blue-600 shadow-blue-200",
+      btnBg: "!bg-blue-500 hover:!bg-blue-600 shadow-blue-200/50",
     },
     success: {
       icon: "bi-check-circle-fill",
       iconColor: "text-[#8d9b70]",
       iconBg: "bg-[#EEF1E7]",
-      btnBg: "bg-[#8d9b70] hover:bg-[#7c8b61] shadow-[#EEF1E7]",
+      btnBg: "!bg-[#8d9b70] hover:!bg-[#74845a] shadow-[#EEF1E7]",
     }
   };
 
@@ -74,13 +75,15 @@ export default function ConfirmAlert({
               {isLoading ? <span className="loading loading-spinner"></span> : confirmText}
             </button>
             
-            <button
-              onClick={onClose}
-              disabled={isLoading}
-              className="btn bg-gray-100 border-none rounded-2xl text-gray-600 hover:bg-gray-200 font-bold w-full"
-            >
-              {cancelText}
-            </button>
+            {showCancel && (
+              <button
+                onClick={onClose}
+                disabled={isLoading}
+                className="w-full py-4 !bg-gray-100 rounded-2xl text-gray-600 hover:!bg-gray-200 font-bold transition-all"
+              >
+                {cancelText}
+              </button>
+            )}
           </div>
         </div>
       </div>

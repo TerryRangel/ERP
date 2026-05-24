@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { productService } from "../../services/productService"; 
+import { productService } from "../../services/productService";
+import ConfirmAlert from "../../components/ui/Alert"; 
 
 export default function InventoryPage() {
   const [productos, setProductos] = useState([]);
@@ -11,6 +12,11 @@ export default function InventoryPage() {
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [nuevoStock, setNuevoStock] = useState("");
   const [guardando, setGuardando] = useState(false);
+
+  const [successAlert, setSuccessAlert] = useState({
+    isOpen: false,
+    message: ""
+  });
 
   useEffect(() => {
     cargarInventario();
@@ -30,7 +36,7 @@ export default function InventoryPage() {
 
   const abrirModalStock = (producto) => {
     setProductoSeleccionado(producto);
-    setNuevoStock(producto.stock); // Pre-llenamos con el stock actual
+    setNuevoStock(producto.stock);
     setModalAbierto(true);
   };
 
@@ -51,13 +57,15 @@ export default function InventoryPage() {
         throw new Error("El stock no puede ser negativo.");
       }
 
-      // Conectado directamente a tu backend para actualizar
       await productService.update(productoSeleccionado.id, {
         ...productoSeleccionado,
         stock: stockActualizado
       });
       
-      alert('¡Stock actualizado con éxito!');
+      setSuccessAlert({ 
+        isOpen: true, 
+        message: "¡El stock se ha actualizado correctamente en el inventario!" 
+      });
 
       await cargarInventario();
       cerrarModal();
@@ -118,7 +126,7 @@ export default function InventoryPage() {
                 className="
                   w-full lg:w-[360px] h-[58px] rounded-2xl
                   border border-[#E5EBDD] bg-white
-                  pl-5 pr-14 text-sm font-medium text-gray-700
+                  !pl-5 !pr-14 text-sm font-medium text-gray-700
                   outline-none transition-all shadow-sm
                   focus:border-[#7E8B63] focus:ring-4 focus:ring-[#7E8B63]/10
                 "
@@ -192,7 +200,7 @@ export default function InventoryPage() {
                       </td>
                       <td className="pr-10 py-5">
                         <div className="flex justify-end">
-                          {/* BOTÓN ÚNICO DE ACTUALIZAR */}
+                          {/* BOTÓN DE ACTUALIZAR */}
                           <button 
                             onClick={() => abrirModalStock(prod)}
                             className="px-5 py-2.5 rounded-xl bg-[#EEF2E7] text-[#7E8B63] hover:bg-[#7E8B63] hover:text-white transition-all font-bold flex items-center justify-center gap-2" 
@@ -241,7 +249,6 @@ export default function InventoryPage() {
                   <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                     <i className="bi bi-hash !text-gray-400 text-xl"></i>
                   </div>
-                  {/* AQUÍ MANTENEMOS EL !pl-14 PARA EL ÍCONO */}
                   <input 
                     type="number" 
                     min="0"
@@ -272,6 +279,17 @@ export default function InventoryPage() {
           </div>
         </div>
       )}
+
+      <ConfirmAlert
+        isOpen={successAlert.isOpen}
+        onConfirm={() => setSuccessAlert({ isOpen: false, message: "" })}
+        onClose={() => setSuccessAlert({ isOpen: false, message: "" })}
+        title="¡Excelente!"
+        message={successAlert.message}
+        confirmText="Aceptar"
+        type="success"
+        showCancel={false} 
+      />
 
     </div>
   );
