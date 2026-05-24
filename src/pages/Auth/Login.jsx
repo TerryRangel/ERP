@@ -14,7 +14,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
-  
+
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -35,7 +35,91 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex overflow-hidden bg-[#F6F1E8]">
+    <div className="relative min-h-screen flex overflow-hidden bg-[#F6F1E8]">
+
+      {/* FRASE CENTRAL DIVIDIDA */}
+      <div
+        className="
+          hidden
+          lg:flex
+          absolute
+          top-16
+          left-1/2
+          -translate-x-1/2
+          z-30
+          pointer-events-none
+          items-start
+        "
+      >
+        {/* LADO LOGIN */}
+        <div className="">
+          <span
+            className="
+            pr-50 text-right
+              text-6xl
+              font-serif
+              leading-[0.95]
+              text-[#4B3429]
+              drop-shadow-sm
+            "
+          >
+            Cada puntada
+          </span>
+
+          <span
+            className="
+              block
+              mt-3
+              text-4xl
+              italic
+              text-[#8D9472]
+            "
+          >
+            lleva dedicación
+          </span>
+        </div>
+
+        {/* LINEA CENTRAL */}
+        <div
+          className="
+            w-px
+            h-40
+            bg-gradient-to-b
+            from-transparent
+            via-[#CFC6B8]
+            to-transparent
+            opacity-70
+          "
+        ></div>
+
+        {/* LADO IMAGEN */}
+        <div className="pr-10">
+          <span
+            className="
+              text-6xl
+              font-serif
+              leading-[0.95]
+              text-white
+              drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)]
+            "
+          >
+            Cada tejido
+          </span>
+
+          <span
+            className="
+              block
+              mt-3
+              text-4xl
+              italic
+              text-[#F2EBDD]
+            "
+          >
+            lleva amor
+          </span>
+        </div>
+      </div>
+
       {/* LEFT PANEL */}
       <div
         className="
@@ -77,6 +161,7 @@ export default function Login() {
 
         {/* CONTENT */}
         <div className="relative z-10 w-full max-w-xl">
+
           {/* LOGO */}
           <div className="flex items-center gap-4 mb-16">
             <div
@@ -93,10 +178,10 @@ export default function Login() {
                 overflow-hidden
               "
             >
-              <img 
-                src={logotipo} 
-                alt="Logo Tejidos" 
-                className="w-full h-full object-cover" 
+              <img
+                src={logotipo}
+                alt="Logo Tejidos"
+                className="w-full h-full object-cover"
               />
             </div>
 
@@ -112,7 +197,7 @@ export default function Login() {
           </div>
 
           {/* TITLE */}
-          <div className="mb-10">
+          <div className="mb-10 mt-24">
             <h1
               className="
                 text-6xl
@@ -150,6 +235,7 @@ export default function Login() {
 
           {/* FORM */}
           <form onSubmit={handleSubmit} className="space-y-6">
+
             {/* USER */}
             <div
               className="
@@ -172,7 +258,7 @@ export default function Login() {
                   items-center
                   justify-center
                 "
-                >
+              >
                 <i className="bi bi-person text-white text-2xl"></i>
               </div>
 
@@ -298,6 +384,7 @@ export default function Login() {
                 items-center
                 justify-center
                 gap-4
+                hover:scale-[1.01]
               "
             >
               {loading ? (
@@ -363,6 +450,7 @@ export default function Login() {
 
       {/* RIGHT PANEL */}
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
+
         {/* IMAGE */}
         <div
           className="absolute inset-0"
@@ -373,58 +461,89 @@ export default function Login() {
           }}
         ></div>
 
+        {/* EXTRA DEPTH */}
+        <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]"></div>
+
         {/* OVERLAY */}
         <div
           className="
             absolute
             inset-0
             bg-gradient-to-br
-            from-[#7B8464]/20
-            via-[#4B3429]/20
-            to-[#000000]/35
+            from-[#4B3429]/40
+            via-[#2F241D]/45
+            to-[#000000]/55
           "
         ></div>
 
-        {/* QUOTE CARD */}
+        {/* REGISTER CARD */}
         <div
           className="
             absolute
-            top-24
-            right-0
-            w-[280px]
-            bg-[#9EA384]/90
-            backdrop-blur-md
-            rounded-[40px]
-            p-10
-            text-white
+            top-10
+            right-10
+            w-[320px]
+            bg-white/12
+            backdrop-blur-2xl
+            rounded-[32px]
+            p-8
             border
             border-white/20
-            shadow-2xl
+            shadow-[0_8px_40px_rgba(0,0,0,0.25)]
           "
         >
-          <div className="flex justify-center mb-6">
-            <i className="bi bi-heart text-5xl"></i>
+          {/* ICON */}
+          <div
+            className="
+              w-16
+              h-16
+              rounded-full
+              bg-white/15
+              flex
+              items-center
+              justify-center
+              mx-auto
+              mb-6
+              border
+              border-white/10
+            "
+          >
+            <i className="bi bi-heart-fill text-2xl text-[#F5EBDD]"></i>
           </div>
-          <div className="text-center pt-4">
-            <p className="text-sm text-gray-100">
-              ¿No tienes cuenta? 
+
+          {/* TEXT */}
+          <div className="text-center">
+            <p className="text-white text-2xl font-serif">
+              ¿Aún no tienes cuenta?
             </p>
-            <button 
+
+            <p className="text-[#ECE6DB] text-sm mt-3 leading-relaxed">
+              Únete y descubre tejidos hechos
+              con dedicación artesanal.
+            </p>
+
+            <button
               type="button"
-              className="mt-2 text-[#8FA878] font-semibold hover:underline"
               onClick={() => setRegisterOpen(true)}
+              className="
+                mt-6
+                w-full
+                h-[56px]
+                rounded-2xl
+                bg-[#F5EBDD]
+                text-[#4B3429]
+                font-semibold
+                text-lg
+                hover:scale-[1.02]
+                hover:bg-white
+                transition-all
+                duration-300
+                shadow-lg
+              "
             >
-              Registrate
+              Crear cuenta
             </button>
           </div>
-        </div>
-
-        {/* CITA EN EL MEDIO */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <p className="text-3xl leading-relaxed text-center font-light text-white max-w-sm drop-shadow-lg">
-            Cada puntada lleva dedicación,
-            cada tejido lleva amor.
-          </p>
         </div>
 
         {/* BOTTOM CARD */}
@@ -444,13 +563,14 @@ export default function Login() {
             shadow-2xl
           "
         >
-          <div className="text-center">
+          <div className="text-center transition-all duration-300 hover:-translate-y-2">
             <div
               className="
                 w-20
                 h-20
                 rounded-full
                 bg-[#EEF1E7]
+                shadow-lg
                 flex
                 items-center
                 justify-center
@@ -470,13 +590,14 @@ export default function Login() {
             </p>
           </div>
 
-          <div className="text-center">
+          <div className="text-center transition-all duration-300 hover:-translate-y-2">
             <div
               className="
                 w-20
                 h-20
                 rounded-full
                 bg-[#EEF1E7]
+                shadow-lg
                 flex
                 items-center
                 justify-center
@@ -496,13 +617,14 @@ export default function Login() {
             </p>
           </div>
 
-          <div className="text-center">
+          <div className="text-center transition-all duration-300 hover:-translate-y-2">
             <div
               className="
                 w-20
                 h-20
                 rounded-full
                 bg-[#EEF1E7]
+                shadow-lg
                 flex
                 items-center
                 justify-center
@@ -524,7 +646,7 @@ export default function Login() {
         </div>
       </div>
 
-      <ClientFormModal 
+      <ClientFormModal
         isOpen={registerOpen}
         onClose={() => setRegisterOpen(false)}
         initialData={null}
