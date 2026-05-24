@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { productService } from "../../services/productService";
 import ProductModal from "../../components/ui/ProductModal";
+import ConfirmAlert from "../../components/ui/Alert"; 
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { Can } from "../../components/can.jsx";
 
@@ -12,6 +13,17 @@ export default function ProductsPage() {
   // Estados para controlar el modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState(null);
+
+  const [deleteAlert, setDeleteAlert] = useState({
+    isOpen: false,
+    productId: null,
+    isDeleting: false
+  });
+
+  const [successAlert, setSuccessAlert] = useState({
+    isOpen: false,
+    message: ""
+  });
 
   const obtenerProductos = async () => {
     try {
@@ -38,14 +50,19 @@ export default function ProductsPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este producto permanentemente?")) {
-      try {
-        await productService.remove(id);
-        obtenerProductos();
-      } catch (error) {
-        alert(error.message);
-      }
+  const handleClickEliminar = (id) => {
+    setDeleteAlert({ isOpen: true, productId: id, isDeleting: false });
+  };
+
+  const executeDelete = async () => {
+    setDeleteAlert(prev => ({ ...prev, isDeleting: true }));
+    try {
+      await productService.remove(deleteAlert.productId);
+      await obtenerProductos();
+    } catch (error) {
+      console.error("Error al eliminar:", error.message);
+    } finally {
+      setDeleteAlert({ isOpen: false, productId: null, isDeleting: false });
     }
   };
 
@@ -99,7 +116,7 @@ export default function ProductsPage() {
                 className="
                   w-full lg:w-[360px] h-[58px] rounded-2xl
                   border border-[#E5EBDD] bg-white
-                  pl-5 pr-14 text-sm font-medium text-gray-700
+                  !pl-5 !pr-14 text-sm font-medium text-gray-700
                   outline-none transition-all shadow-sm
                   focus:border-[#7E8B63] focus:ring-4 focus:ring-[#7E8B63]/10
                 "
@@ -172,7 +189,7 @@ export default function ProductsPage() {
                         </Can>
                         <Can I="products:delete">
                           <button 
-                            onClick={() => handleDelete(prod.id)} 
+                            onClick={() => handleClickEliminar(prod.id)}
                             className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all" 
                             title="Eliminar Producto"
                           >
@@ -207,8 +224,44 @@ export default function ProductsPage() {
       <ProductModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onProductSaved={obtenerProductos} 
+        onProductSaved={async () => {
+          await obtenerProductos();
+          if (productToEdit) {
+            setSuccessAlert({ 
+              isOpen: true, 
+              message: "¡Producto actualizado correctamente!" 
+            });
+          } else {
+            setSuccessAlert({ 
+              isOpen: true, 
+              message: "¡Nuevo producto agregado con éxito!" 
+            });
+          }
+          
+        }} 
         productToEdit={productToEdit} 
+      />
+
+      <ConfirmAlert
+        isOpen={deleteAlert.isOpen}
+        onClose={() => setDeleteAlert({ isOpen: false, productId: null, isDeleting: false })}
+        onConfirm={executeDelete}
+        title="¿Eliminar producto?"
+        message="¿Estás seguro de que deseas eliminar este artículo permanentemente? Esta acción no se puede deshacer."
+        confirmText="Sí, eliminar"
+        cancelText="Cancelar"
+        type="danger"
+        isLoading={deleteAlert.isDeleting}
+      />
+      <ConfirmAlert
+        isOpen={successAlert.isOpen}
+        onConfirm={() => setSuccessAlert({ isOpen: false, message: "" })}
+        onClose={() => setSuccessAlert({ isOpen: false, message: "" })}
+        title="¡Excelente!"
+        message={successAlert.message}
+        confirmText="Aceptar"
+        type="success"
+        showCancel={false}
       />
     </div>
   );

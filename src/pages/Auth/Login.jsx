@@ -5,10 +5,12 @@ import { clientService } from '../../services/clientService';
 import "bootstrap-icons/font/bootstrap-icons.css";
 import ClientFormModal from '../../components/ui/ClientFormModal.jsx';
 import interiorStyleScene from "../../assets/interior-style-scene.jpg";
+import logotipo from "../../assets/logotipoo.png";
 
 export default function Login() {
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
@@ -88,9 +90,14 @@ export default function Login() {
                 items-center
                 justify-center
                 bg-[#EEF1E7]
+                overflow-hidden
               "
             >
-              <i className="bi bi-flower1 text-3xl text-[#8D9472]"></i>
+              <img 
+                src={logotipo} 
+                alt="Logo Tejidos" 
+                className="w-full h-full object-cover" 
+              />
             </div>
 
             <div>
@@ -114,7 +121,7 @@ export default function Login() {
                 text-[#4B3429]
               "
             >
-              ¡Bienvenida de nuevo!
+              ¡Bienvenid@ de nuevo!
             </h1>
 
             <p className="mt-6 text-[#7B6A58] text-xl leading-relaxed max-w-lg">
@@ -175,7 +182,7 @@ export default function Login() {
                 className="
                   flex-1
                   h-[72px]
-                  px-6
+                  !pl-4
                   text-lg
                   outline-none
                   bg-transparent
@@ -215,12 +222,12 @@ export default function Login() {
               </div>
 
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Contraseña"
                 className="
                   flex-1
                   h-[72px]
-                  px-6
+                  !pl-4
                   text-lg
                   outline-none
                   bg-transparent
@@ -234,9 +241,10 @@ export default function Login() {
 
               <button
                 type="button"
-                className="px-6 text-[#8F7E70]"
+                onClick={() => setShowPassword(!showPassword)}
+                className="px-6 text-[#8F7E70] hover:text-[#4B3429] transition-colors focus:outline-none"
               >
-                <i className="bi bi-eye text-2xl"></i>
+                <i className={`text-2xl bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}></i>
               </button>
             </div>
 
