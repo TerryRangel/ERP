@@ -5,12 +5,16 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
 export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData }) {
   const { user } = useAuth();
+  const isEditing = !!initialData;
   
   // Verificación de permisos
   const isAdmin = user?.role?.toUpperCase() === "ADMIN";
   const hasCreatePerm = user?.permissions?.includes("clients:create");
-  const canEdit = isAdmin || hasCreatePerm;
-
+  const hasFullAccess = isAdmin || hasCreatePerm;
+  
+  // LA REGLA CLAVE: Puede interactuar si es un registro NUEVO o si tiene ACCESO TOTAL
+  const canInteract = !isEditing || hasFullAccess;
+  
   const [form, setForm] = useState({
     nombre: "",
     rfc: "",
@@ -52,7 +56,8 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
   if (!isOpen) return null;
 
   const handleChange = (e) => {
-    if (!canEdit) return;
+    // Usamos canInteract en lugar de canEdit
+    if (!canInteract) return;
 
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -63,25 +68,23 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!canEdit) return;
+    // Usamos canInteract en lugar de canEdit
+    if (!canInteract) return;
 
     setLoading(true);
     try {
-      // Intentamos guardar
       await onSubmit(form);
       onClose();
     } catch (error) {
       console.error("Error al guardar cliente:", error);
       
-      // Extraemos el mensaje del backend o ponemos uno por defecto
       const errorMsg = error.response?.data?.message || error.response?.data?.error || "Ya existe un registro con estos datos o hubo un error de conexión.";
       
-      // Disparamos tu ConfirmAlert
       setAlertConfig({
         isOpen: true,
         title: "No se pudo guardar",
         message: errorMsg,
-        type: "warning" // Usamos tu estilo naranja de warning
+        type: "warning" 
       });
     } finally {
       setLoading(false);
@@ -90,13 +93,8 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
 
   const closeAlert = () => setAlertConfig({ ...alertConfig, isOpen: false });
 
-  const isEditing = !!initialData;
-
   return (
     <>
-      {/* Tu ConfirmAlert tiene un z-index de 100, por lo que aparecerá 
-        perfectamente por encima de este modal (z-50) 
-      */}
       <ConfirmAlert
         isOpen={alertConfig.isOpen}
         title={alertConfig.title}
@@ -111,7 +109,8 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4 overflow-y-auto">
         <div className="relative w-full max-w-3xl bg-white rounded-[2.5rem] border border-[#E6EBDA] shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden animate-[fadeIn_.25s_ease] my-auto">
           
-          <div className={`absolute top-0 left-0 right-0 h-40 ${canEdit ? 'bg-gradient-to-r from-[#8d9b70] via-[#95a67a] to-[#7c8b61]' : 'bg-gradient-to-r from-gray-400 to-gray-500'}`} />
+          {/* Aquí también cambiamos canEdit por canInteract */}
+          <div className={`absolute top-0 left-0 right-0 h-40 ${canInteract ? 'bg-gradient-to-r from-[#8d9b70] via-[#95a67a] to-[#7c8b61]' : 'bg-gradient-to-r from-gray-400 to-gray-500'}`} />
           
           <div className="relative z-10">
             {/* HEADER */}
@@ -119,15 +118,15 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
               <div className="flex justify-between items-start gap-4">
                 <div className="flex items-center gap-5">
                   <div className="w-20 h-20 rounded-[2rem] bg-white/20 border border-white/20 backdrop-blur-md flex items-center justify-center shadow-lg">
-                    <i className={`bi ${!canEdit ? 'bi-eye' : (isEditing ? 'bi-person-vcard' : 'bi-person-plus')} text-white text-4xl`}></i>
+                    <i className={`bi ${!canInteract ? 'bi-eye' : (isEditing ? 'bi-person-vcard' : 'bi-person-plus')} text-white text-4xl`}></i>
                   </div>
                   <div>
                     <p className="text-white/80 uppercase tracking-[0.25em] text-xs font-semibold mb-2">Directorio</p>
                     <h2 className="text-3xl sm:text-4xl font-bold text-white">
-                      {!canEdit ? "Detalles del Cliente" : (isEditing ? "Editar Cliente" : "Nuevo Cliente")}
+                      {!canInteract ? "Detalles del Cliente" : (isEditing ? "Editar Cliente" : "Nuevo Cliente")}
                     </h2>
                     <p className="text-sm text-white/75 mt-2">
-                      {!canEdit ? "Modo de solo lectura" : (isEditing ? "Modifica los datos comerciales" : "Registra un nuevo contacto comercial")}
+                      {!canInteract ? "Modo de solo lectura" : (isEditing ? "Modifica los datos comerciales" : "Registra un nuevo contacto comercial")}
                     </p>
                   </div>
                 </div>
@@ -144,7 +143,8 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
             {/* BODY */}
             <div className="bg-[#F8FAF5] rounded-t-[2.5rem] px-6 sm:px-10 py-8">
               
-              {!canEdit && (
+              {/* Solo muestra el mensaje si está editando y NO tiene permisos */}
+              {!canInteract && isEditing && (
                 <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 text-sm font-medium">
                   <i className="bi bi-info-circle-fill text-lg"></i>
                   <span>No tienes permisos para modificar este registro. Los datos se muestran en modo de solo lectura.</span>
@@ -158,13 +158,13 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
                   <div className="flex items-center justify-between bg-white p-5 rounded-3xl border border-[#DDE5CD] shadow-sm">
                     <div className="flex items-center gap-4 w-full">
                       <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Estado Comercial:</span>
-                      <label className={`flex items-center gap-3 select-none ${canEdit ? 'cursor-pointer' : 'cursor-not-allowed opacity-70'}`}>
+                      <label className={`flex items-center gap-3 select-none ${canInteract ? 'cursor-pointer' : 'cursor-not-allowed opacity-70'}`}>
                         <input 
                           type="checkbox" 
                           name="activo" 
                           checked={form.activo} 
                           onChange={handleChange} 
-                          disabled={!canEdit}
+                          disabled={!canInteract}
                           className="toggle toggle-success toggle-md" 
                         />
                         <span className={`font-bold text-sm ${form.activo ? 'text-green-600' : 'text-gray-400'}`}>
@@ -186,8 +186,8 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
                         placeholder="Ej. Comercializadora Textiles S.A." 
                         value={form.nombre} 
                         onChange={handleChange} 
-                        disabled={!canEdit}
-                        className={`w-full pl-5 pr-12 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none font-semibold ${!canEdit ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
+                        disabled={!canInteract}
+                        className={`w-full pl-5 pr-12 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none font-semibold ${!canInteract ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
                       />
                       <i className="bi bi-buildings absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
@@ -201,8 +201,8 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
                         placeholder="XAXX010101000" 
                         value={form.rfc || ""} 
                         onChange={handleChange} 
-                        disabled={!canEdit}
-                        className={`w-full pl-5 pr-12 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none uppercase ${!canEdit ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
+                        disabled={!canInteract}
+                        className={`w-full pl-5 pr-12 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none uppercase ${!canInteract ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
                       />
                       <i className="bi bi-upc-scan absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
@@ -217,8 +217,8 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
                         placeholder="(555) 123-4567" 
                         value={form.telefono || ""} 
                         onChange={handleChange} 
-                        disabled={!canEdit}
-                        className={`w-full pl-5 pr-12 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none ${!canEdit ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
+                        disabled={!canInteract}
+                        className={`w-full pl-5 pr-12 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none ${!canInteract ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
                       />
                       <i className="bi bi-telephone absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
@@ -233,8 +233,8 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
                         placeholder="contacto@empresa.com" 
                         value={form.email || ""} 
                         onChange={handleChange} 
-                        disabled={!canEdit}
-                        className={`w-full pl-5 pr-12 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none ${!canEdit ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
+                        disabled={!canInteract}
+                        className={`w-full pl-5 pr-12 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none ${!canInteract ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
                       />
                       <i className="bi bi-envelope absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
@@ -248,8 +248,8 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
                         placeholder="Ej. Roberto Sánchez" 
                         value={form.contacto || ""} 
                         onChange={handleChange} 
-                        disabled={!canEdit}
-                        className={`w-full pl-5 pr-12 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none ${!canEdit ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
+                        disabled={!canInteract}
+                        className={`w-full pl-5 pr-12 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none ${!canInteract ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
                       />
                       <i className="bi bi-person-badge absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
@@ -263,8 +263,8 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
                         placeholder="Av. Principal #123, Col. Centro..." 
                         value={form.direccion || ""} 
                         onChange={handleChange} 
-                        disabled={!canEdit}
-                        className={`w-full pl-5 pr-12 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none ${!canEdit ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
+                        disabled={!canInteract}
+                        className={`w-full pl-5 pr-12 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none ${!canInteract ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
                       />
                       <i className="bi bi-geo-alt absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
@@ -277,9 +277,9 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
                       placeholder="Condiciones de crédito, horarios de recepción, etc." 
                       value={form.notas || ""} 
                       onChange={handleChange} 
-                      disabled={!canEdit}
+                      disabled={!canInteract}
                       rows="3"
-                      className={`w-full pl-5 pr-5 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none resize-none custom-scrollbar ${!canEdit ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
+                      className={`w-full pl-5 pr-5 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 outline-none resize-none custom-scrollbar ${!canInteract ? 'opacity-80 bg-gray-50 cursor-not-allowed' : 'transition-all duration-300 focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10'}`} 
                     />
                   </div>
                 </div>
@@ -292,12 +292,12 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
                     className="flex-1 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 font-semibold uppercase tracking-wider text-sm transition-all duration-300 hover:bg-gray-50 hover:shadow-md"
                   >
                     <div className="flex items-center justify-center gap-2">
-                      <i className={`bi ${canEdit ? 'bi-x-circle' : 'bi-arrow-left'} text-lg`}></i>
-                      {canEdit ? "Cancelar" : "Regresar"}
+                      <i className={`bi ${canInteract ? 'bi-x-circle' : 'bi-arrow-left'} text-lg`}></i>
+                      {canInteract ? "Cancelar" : "Regresar"}
                     </div>
                   </button>
 
-                  {canEdit && (
+                  {canInteract && (
                     <button 
                       type="submit" 
                       disabled={loading} 
