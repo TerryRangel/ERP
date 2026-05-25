@@ -144,6 +144,14 @@ export default function Sidebar() {
           </NavLink>
         </Can>
 
+        {/* 8. RECEPCIONES */}
+         <Can I="receptions:read">
+        <NavLink to="/receptions" style={linkStyle}>
+          <i className="bi bi-truck" style={{ fontSize: "18px" }} />
+          <span>Recepciones</span>
+        </NavLink>
+        </Can>
+
       </nav>
 
       {/* Sección Inferior - Estado y Acción */}
