@@ -2,6 +2,7 @@ import { useClients } from "../../hooks/useClients";
 import { useState } from "react";
 import ClientFormModal from "../../components/ui/ClientFormModal";
 import {Can }from "../../components/Can.jsx";
+import { includes } from "zod";
 
 export default function ClientsPage() {
   const { clients, meta, loading, setFilters, createClient, updateClient, deleteClient, toggleClient } = useClients();
@@ -12,6 +13,18 @@ export default function ClientsPage() {
   const [search, setSearch] = useState("");
   const [clientToDelete, setClientToDelete] = useState(null);
   if (loading) return <div>Cargando...</div>;
+
+  const filtredClients = clients.filter(c => {
+    const text = `
+    ${c.nombre || ""} 
+    ${c.email || ""} 
+    ${c.telefono || ""}
+    `
+    .toLowerCase();
+
+    return text.includes(search.toLowerCase());
+    
+  });
 
   return (
   <div className="min-h-screen bg-[#F5F7F2] px-2 md:px-4 py-8 w-full">
@@ -55,7 +68,7 @@ export default function ClientsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="
-                w-full lg:w-[360px]
+                w-full lg:w-[460px]
                 h-[58px]
                 rounded-2xl
                 border border-[#E5EBDD]
@@ -75,34 +88,6 @@ export default function ClientsPage() {
 
             <i className="bi bi-search absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
           </div>
-
-          {/* BOTON */}
-          <button
-            onClick={() =>
-              setFilters((prev) => ({
-                ...prev,
-                q: search,
-                page: 1
-              }))
-            }
-            className="
-              h-[58px]
-              px-7
-              rounded-2xl
-              bg-gradient-to-r
-              from-[#8FA878]
-              to-[#718355]
-              text-white
-              font-semibold
-              flex items-center gap-3
-              shadow-lg
-              hover:opacity-90
-              transition-all
-            "
-          >
-            <i className="bi bi-search"></i>
-            Buscar
-          </button>
 
           {/* NUEVO */}
           <Can I= "client:create">
@@ -198,7 +183,7 @@ export default function ClientsPage() {
           </h2>
 
           <p className="text-sm text-gray-400 mt-1">
-            {clients.length} resultados encontrados
+            {filtredClients.length} resultados encontrados
           </p>
         </div>
 
@@ -231,7 +216,7 @@ export default function ClientsPage() {
 
             <tbody>
 
-              {clients.map((c) => (
+              {filtredClients.map((c) => (
 
                 <tr
                   key={c.id}
