@@ -308,7 +308,7 @@ export default function ClientFormModal({ isOpen, onClose, onSubmit, initialData
 
               <textarea
                 rows="4"
-                placeholder=" Notas adicionales..."
+                placeholder=" Notas adicionales"
                 value={form.notas}
                 onChange={(e) =>
                   setForm({ ...form, notas: e.target.value })
