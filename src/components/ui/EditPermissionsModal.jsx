@@ -4,27 +4,16 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
 // Lista ampliada con permisos de "Lectura" y "Gestión Total"
 const DEFAULT_PERMISSIONS = [
-  // DASHBOARD & AUDITORÍA
   { code: "dashboard:read", nombre: "Ver Dashboard", modulo: "Lectura", icon: "bi-speedometer2", desc: "Solo visualización de métricas y gráficas" },
   { code: "audit:read", nombre: "Ver Auditoría", modulo: "Lectura", icon: "bi-clipboard2-data", desc: "Ver el registro de movimientos del sistema" },
-
-  // USUARIOS
   { code: "users:read", nombre: "Ver Usuarios", modulo: "Lectura", icon: "bi-people", desc: "Solo ver la lista de usuarios del sistema" },
   { code: "users:create", nombre: "Gestión de Usuarios", modulo: "Control Total", icon: "bi-person-gear", desc: "Crear, editar y eliminar cuentas de usuario" },
-
-  // PRODUCTOS
   { code: "products:read", nombre: "Ver Productos", modulo: "Lectura", icon: "bi-box-seam", desc: "Solo consultar el catálogo de productos" },
   { code: "products:create", nombre: "Gestión de Productos", modulo: "Control Total", icon: "bi-boxes", desc: "Agregar, editar y eliminar productos" },
-
-  // INVENTARIO
   { code: "inventory:read", nombre: "Ver Inventario", modulo: "Lectura", icon: "bi-archive", desc: "Solo consultar niveles de stock actual" },
   { code: "inventory:create", nombre: "Gestión Inventario", modulo: "Control Total", icon: "bi-box-arrow-in-down", desc: "Ajustar, ingresar y retirar mercancía" },
-
-  // CLIENTES
   { code: "clients:read", nombre: "Ver Clientes", modulo: "Lectura", icon: "bi-person-vcard", desc: "Solo consultar el directorio de clientes" },
   { code: "clients:create", nombre: "Gestión de Clientes", modulo: "Control Total", icon: "bi-person-plus", desc: "Registrar, editar y eliminar clientes" },
-
-  // PROVEEDORES
   { code: "suppliers:read", nombre: "Ver Proveedores", modulo: "Lectura", icon: "bi-truck", desc: "Solo consultar la lista de proveedores" },
   { code: "suppliers:create", nombre: "Gestión Proveedores", modulo: "Control Total", icon: "bi-building-gear", desc: "Registrar, editar y dar de baja proveedores" },
 ];
@@ -69,13 +58,35 @@ export default function EditUserModal({ isOpen, onClose, onUpdate, user }) {
     }));
   };
 
+  // LOGICA MEJORADA DE PERMISOS
   const togglePermission = (code) => {
-    setFormData((prev) => ({
-      ...prev,
-      permissions: prev.permissions.includes(code)
-        ? prev.permissions.filter((p) => p !== code)
-        : [...prev.permissions, code],
-    }));
+    setFormData((prev) => {
+      let newPerms = [...prev.permissions];
+
+      if (newPerms.includes(code)) {
+        // Desmarcar el permiso
+        newPerms = newPerms.filter((p) => p !== code);
+        
+        // Si quita un permiso de lectura (read), quitar también el de creación (create)
+        if (code.includes(":read")) {
+          const createCode = code.replace(":read", ":create");
+          newPerms = newPerms.filter((p) => p !== createCode);
+        }
+      } else {
+        // Marcar el permiso
+        newPerms.push(code);
+        
+        // Si marca un permiso de creación (create), asignar automáticamente el de lectura (read)
+        if (code.includes(":create")) {
+          const readCode = code.replace(":create", ":read");
+          if (!newPerms.includes(readCode)) {
+            newPerms.push(readCode);
+          }
+        }
+      }
+
+      return { ...prev, permissions: newPerms };
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -88,6 +99,7 @@ export default function EditUserModal({ isOpen, onClose, onUpdate, user }) {
       delete dataToSend.activo;
       if (!dataToSend.password) delete dataToSend.password;
 
+      // Hacemos el envío de los permisos al backend
       await api.patch(`/users/${user.id}`, dataToSend);
 
       if (user.activo !== isActivo) {
@@ -105,7 +117,6 @@ export default function EditUserModal({ isOpen, onClose, onUpdate, user }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4 overflow-y-auto">
-      {/* Se aumentó el max-w-3xl a max-w-4xl para dar más espacio a las descripciones */}
       <div className="relative w-full max-w-4xl bg-white rounded-[2.5rem] border border-[#E6EBDA] shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden animate-[fadeIn_.25s_ease] my-auto">
         <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-r from-[#8d9b70] via-[#95a67a] to-[#7c8b61]" />
         
@@ -203,7 +214,7 @@ export default function EditUserModal({ isOpen, onClose, onUpdate, user }) {
                 </div>
               </div>
 
-              {/* PERMISSIONS (REDESIGN) */}
+              {/* PERMISSIONS */}
               <div className="pt-2">
                 <div className="flex items-center justify-between mb-4">
                   <div>

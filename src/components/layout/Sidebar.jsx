@@ -128,11 +128,28 @@ export default function Sidebar() {
           </NavLink>
         </Can>
 
+        {/* 6. CLIENTES */}
         <Can I="clients:read">
           <NavLink to="/clients" style={linkStyle}>
             <i className="bi bi-person-fill" style={{ fontSize: "18px" }} />
             <span>Clientes</span>
           </NavLink>
+        </Can>
+
+        {/* 7. INVENTARIO */}
+        <Can I="inventory:read">
+          <NavLink to="/inventory" style={linkStyle}>
+            <i className="bi bi-inboxes-fill" style={{ fontSize: "18px" }} />
+            <span>Inventario</span>
+          </NavLink>
+        </Can>
+
+        {/* 8. RECEPCIONES */}
+         <Can I="receptions:read">
+        <NavLink to="/receptions" style={linkStyle}>
+          <i className="bi bi-truck" style={{ fontSize: "18px" }} />
+          <span>Recepciones</span>
+        </NavLink>
         </Can>
 
       </nav>

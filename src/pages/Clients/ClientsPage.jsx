@@ -1,6 +1,7 @@
 import { useClients } from "../../hooks/useClients";
 import { useState } from "react";
 import ClientFormModal from "../../components/ui/ClientFormModal";
+import {Can }from "../../components/Can.jsx";
 
 export default function ClientsPage() {
   const { clients, meta, loading, setFilters, createClient, updateClient, deleteClient, toggleClient } = useClients();
@@ -104,6 +105,7 @@ export default function ClientsPage() {
           </button>
 
           {/* NUEVO */}
+          <Can I= "client:create">
           <button
             onClick={() => {
               setSelectedClient(null);
@@ -129,6 +131,7 @@ export default function ClientsPage() {
             <i className="bi bi-plus-circle-fill"></i>
             Nuevo Cliente
           </button>
+          </Can>
 
         </div>
       </div>
@@ -217,10 +220,11 @@ export default function ClientsPage() {
                 <th className="text-left py-5 text-xs uppercase tracking-widest text-gray-400 font-black">
                   Estado
                 </th>
-
+              <Can I= "client:create">
                 <th className="text-center pr-10 py-5 text-xs uppercase tracking-widest text-gray-400 font-black">
                   Acciones
                 </th>
+              </Can>
 
               </tr>
             </thead>
@@ -300,6 +304,7 @@ export default function ClientsPage() {
                   </td>
 
                   {/* ACTIONS */}
+                  <Can I= "client:create">
                   <td className="pr-10">
 
                     <div className="flex items-center justify-center gap-3">
@@ -355,10 +360,12 @@ export default function ClientsPage() {
                     </div>
 
                   </td>
+                  </Can>
 
                 </tr>
 
               ))}
+             
 
             </tbody>
 

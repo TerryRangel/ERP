@@ -3,17 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { clientService } from '../../services/clientService';
 import "bootstrap-icons/font/bootstrap-icons.css";
-import fondoLogin from '../../assets/fondo-login.jpg';
 import ClientFormModal from '../../components/ui/ClientFormModal.jsx';
 import interiorStyleScene from "../../assets/interior-style-scene.jpg";
+import logotipo from "../../assets/logotipoo.png";
 
 export default function Login() {
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
-  const navigate = useNavigate();
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -35,7 +35,91 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex overflow-hidden bg-[#F6F1E8]">
+    <div className="relative min-h-screen flex overflow-hidden bg-[#F6F1E8]">
+
+      {/* FRASE CENTRAL DIVIDIDA */}
+      <div
+        className="
+          hidden
+          lg:flex
+          absolute
+          top-16
+          left-1/2
+          -translate-x-1/2
+          z-30
+          pointer-events-none
+          items-start
+        "
+      >
+        {/* LADO LOGIN */}
+        <div className="">
+          <span
+            className="
+            pr-50 text-right
+              text-6xl
+              font-serif
+              leading-[0.95]
+              text-[#4B3429]
+              drop-shadow-sm
+            "
+          >
+            Cada puntada
+          </span>
+
+          <span
+            className="
+              block
+              mt-3
+              text-4xl
+              italic
+              text-[#8D9472]
+            "
+          >
+            lleva dedicación
+          </span>
+        </div>
+
+        {/* LINEA CENTRAL */}
+        <div
+          className="
+            w-px
+            h-40
+            bg-gradient-to-b
+            from-transparent
+            via-[#CFC6B8]
+            to-transparent
+            opacity-70
+          "
+        ></div>
+
+        {/* LADO IMAGEN */}
+        <div className="pr-10">
+          <span
+            className="
+              text-6xl
+              font-serif
+              leading-[0.95]
+              text-white
+              drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)]
+            "
+          >
+            Cada tejido
+          </span>
+
+          <span
+            className="
+              block
+              mt-3
+              text-4xl
+              italic
+              text-[#F2EBDD]
+            "
+          >
+            lleva amor
+          </span>
+        </div>
+      </div>
+
       {/* LEFT PANEL */}
       <div
         className="
@@ -77,6 +161,7 @@ export default function Login() {
 
         {/* CONTENT */}
         <div className="relative z-10 w-full max-w-xl">
+
           {/* LOGO */}
           <div className="flex items-center gap-4 mb-16">
             <div
@@ -90,9 +175,14 @@ export default function Login() {
                 items-center
                 justify-center
                 bg-[#EEF1E7]
+                overflow-hidden
               "
             >
-              <i className="bi bi-flower1 text-3xl text-[#8D9472]"></i>
+              <img
+                src={logotipo}
+                alt="Logo Tejidos"
+                className="w-full h-full object-cover"
+              />
             </div>
 
             <div>
@@ -107,7 +197,7 @@ export default function Login() {
           </div>
 
           {/* TITLE */}
-          <div className="mb-10">
+          <div className="mb-10 mt-24">
             <h1
               className="
                 text-6xl
@@ -116,7 +206,7 @@ export default function Login() {
                 text-[#4B3429]
               "
             >
-              ¡Bienvenida de nuevo!
+              ¡Bienvenid@ de nuevo!
             </h1>
 
             <p className="mt-6 text-[#7B6A58] text-xl leading-relaxed max-w-lg">
@@ -145,6 +235,7 @@ export default function Login() {
 
           {/* FORM */}
           <form onSubmit={handleSubmit} className="space-y-6">
+
             {/* USER */}
             <div
               className="
@@ -177,7 +268,7 @@ export default function Login() {
                 className="
                   flex-1
                   h-[72px]
-                  px-6
+                  !pl-4
                   text-lg
                   outline-none
                   bg-transparent
@@ -217,12 +308,12 @@ export default function Login() {
               </div>
 
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Contraseña"
                 className="
                   flex-1
                   h-[72px]
-                  px-6
+                  !pl-4
                   text-lg
                   outline-none
                   bg-transparent
@@ -236,9 +327,10 @@ export default function Login() {
 
               <button
                 type="button"
-                className="px-6 text-[#8F7E70]"
+                onClick={() => setShowPassword(!showPassword)}
+                className="px-6 text-[#8F7E70] hover:text-[#4B3429] transition-colors focus:outline-none"
               >
-                <i className="bi bi-eye text-2xl"></i>
+                <i className={`text-2xl bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}></i>
               </button>
             </div>
 
@@ -292,6 +384,7 @@ export default function Login() {
                 items-center
                 justify-center
                 gap-4
+                hover:scale-[1.01]
               "
             >
               {loading ? (
@@ -340,7 +433,6 @@ export default function Login() {
               "
             >
               <i className="bi bi-google text-2xl"></i>
-
               Continuar con Google
             </button>
           </form>
@@ -358,6 +450,7 @@ export default function Login() {
 
       {/* RIGHT PANEL */}
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
+
         {/* IMAGE */}
         <div
           className="absolute inset-0"
@@ -368,56 +461,89 @@ export default function Login() {
           }}
         ></div>
 
+        {/* EXTRA DEPTH */}
+        <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]"></div>
+
         {/* OVERLAY */}
         <div
           className="
             absolute
             inset-0
             bg-gradient-to-br
-            from-[#7B8464]/20
-            via-[#4B3429]/20
-            to-[#000000]/35
+            from-[#4B3429]/40
+            via-[#2F241D]/45
+            to-[#000000]/55
           "
         ></div>
 
-        {/* QUOTE CARD */}
+        {/* REGISTER CARD */}
         <div
           className="
             absolute
-            top-24
-            right-0
-            w-[280px]
-            bg-[#9EA384]/90
-            backdrop-blur-md
-            rounded-[40px]
-            p-10
-            text-white
+            top-10
+            right-10
+            w-[320px]
+            bg-white/12
+            backdrop-blur-2xl
+            rounded-[32px]
+            p-8
             border
             border-white/20
-            shadow-2xl
+            shadow-[0_8px_40px_rgba(0,0,0,0.25)]
           "
         >
-          <div className="flex justify-center mb-6">
-            <i className="bi bi-heart text-5xl"></i>
+          {/* ICON */}
+          <div
+            className="
+              w-16
+              h-16
+              rounded-full
+              bg-white/15
+              flex
+              items-center
+              justify-center
+              mx-auto
+              mb-6
+              border
+              border-white/10
+            "
+          >
+            <i className="bi bi-heart-fill text-2xl text-[#F5EBDD]"></i>
           </div>
-          <div className = "text-center pt-4">
-            <p className = "text-sm text-gray-400">
-              ¿No tienes cuenta? 
+
+          {/* TEXT */}
+          <div className="text-center">
+            <p className="text-white text-2xl font-serif">
+              ¿Aún no tienes cuenta?
             </p>
-            <button 
-              type = "button"
-              className = "mt-2 text-[#8FA878] font-semibold hover:underline"
+
+            <p className="text-[#ECE6DB] text-sm mt-3 leading-relaxed">
+              Únete y descubre tejidos hechos
+              con dedicación artesanal.
+            </p>
+
+            <button
+              type="button"
               onClick={() => setRegisterOpen(true)}
-              >
-                Registrate
+              className="
+                mt-6
+                w-full
+                h-[56px]
+                rounded-2xl
+                bg-[#F5EBDD]
+                text-[#4B3429]
+                font-semibold
+                text-lg
+                hover:scale-[1.02]
+                hover:bg-white
+                transition-all
+                duration-300
+                shadow-lg
+              "
+            >
+              Crear cuenta
             </button>
           </div>
-        </form>
-
-          <p className="text-3xl leading-relaxed text-center font-light">
-            Cada puntada lleva dedicación,
-            cada tejido lleva amor.
-          </p>
         </div>
 
         {/* BOTTOM CARD */}
@@ -437,13 +563,14 @@ export default function Login() {
             shadow-2xl
           "
         >
-          <div className="text-center">
+          <div className="text-center transition-all duration-300 hover:-translate-y-2">
             <div
               className="
                 w-20
                 h-20
                 rounded-full
                 bg-[#EEF1E7]
+                shadow-lg
                 flex
                 items-center
                 justify-center
@@ -463,13 +590,14 @@ export default function Login() {
             </p>
           </div>
 
-          <div className="text-center">
+          <div className="text-center transition-all duration-300 hover:-translate-y-2">
             <div
               className="
                 w-20
                 h-20
                 rounded-full
                 bg-[#EEF1E7]
+                shadow-lg
                 flex
                 items-center
                 justify-center
@@ -489,13 +617,14 @@ export default function Login() {
             </p>
           </div>
 
-          <div className="text-center">
+          <div className="text-center transition-all duration-300 hover:-translate-y-2">
             <div
               className="
                 w-20
                 h-20
                 rounded-full
                 bg-[#EEF1E7]
+                shadow-lg
                 flex
                 items-center
                 justify-center
@@ -516,11 +645,12 @@ export default function Login() {
           </div>
         </div>
       </div>
-      <ClientFormModal 
+
+      <ClientFormModal
         isOpen={registerOpen}
         onClose={() => setRegisterOpen(false)}
-        initialData= {null}
-        onSubmit= {async (data) => {
+        initialData={null}
+        onSubmit={async (data) => {
           try {
             await clientService.registerClient(data)
             setRegisterOpen(false);
@@ -532,7 +662,5 @@ export default function Login() {
         }}
       />
     </div>
-    
-
   );
 }
