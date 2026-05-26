@@ -1,4 +1,8 @@
 import { useDashboard } from "../../hooks/useDashboard";
+import { getAuditLogs } from "../../services/auditService";
+import { use, useEffect, useState } from "react";
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
 
 const metrics = [
   { key: "totalUsers", label: "Total Usuarios", sublabel: "Usuarios registrados" },
@@ -45,7 +49,7 @@ function MetricCard({ label, sublabel, value }) {
   );
 }
 
-function ActivityRow({ icon, iconColor, title, date, label, btnText, noBorder }) {
+function ActivityRow({ icon, iconColor, title, date, label, btnText, noBorder, onView }) {
   return (
     <div style={{
       display: "flex", 
@@ -78,7 +82,7 @@ function ActivityRow({ icon, iconColor, title, date, label, btnText, noBorder })
       }}>
         {label}
       </div>
-      <button style={{
+      <button onClick={onView} style={{
         marginLeft: "20px",
         backgroundColor: "transparent",
         border: "1px solid #E8E4DE",
@@ -102,7 +106,35 @@ function ActivityRow({ icon, iconColor, title, date, label, btnText, noBorder })
 export default function Dashboard() {
   const { data } = useDashboard();
 
-  return (
+  const [recentLogs, setRecentLogs] = useState([]);
+  const [selectedLog, setSelectedLog] = useState(null);
+
+  useEffect(() => {
+    loadRecentLogs();
+      
+  }, []);
+
+  const loadRecentLogs = async () => {
+  try {
+    const data = await getAuditLogs();
+
+    const sorted = (data.items || data || [])
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt || b.fecha) -
+          new Date(a.createdAt || a.fecha)
+      )
+      .slice(0, 3);
+
+    setRecentLogs(sorted);
+
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+return (
+  <>
     <div style={{ 
       fontFamily: "'Inter', sans-serif", 
       maxWidth: "1100px",
@@ -110,14 +142,26 @@ export default function Dashboard() {
       padding: "20px 0"
     }}>
 
-      {/* Cabecera Editorial */}
+      {/* Cabecera */}
       <div style={{ marginBottom: "48px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-          <span style={{ fontSize: "14px", fontWeight: "700", color: "#8B9467", textTransform: "uppercase", letterSpacing: "1px" }}>
+          <span style={{ 
+            fontSize: "14px", 
+            fontWeight: "700", 
+            color: "#8B9467", 
+            textTransform: "uppercase", 
+            letterSpacing: "1px" 
+          }}>
             Resumen General
           </span>
-          <div style={{ height: "1px", width: "40px", backgroundColor: "#8B9467" }} />
+
+          <div style={{ 
+            height: "1px", 
+            width: "40px", 
+            backgroundColor: "#8B9467" 
+          }} />
         </div>
+
         <h1 style={{ 
           margin: 0, 
           fontSize: "48px", 
@@ -128,60 +172,26 @@ export default function Dashboard() {
         }}>
           Dashboard
         </h1>
-        <p style={{ margin: "12px 0 0", fontSize: "16px", color: "#8C867E", maxWidth: "600px" }}>
-          Bienvenida, Ana. Aquí tienes la vista actual de tu taller artesanal, organizada con el mismo cuidado que cada una de tus puntadas.
-        </p>
       </div>
 
-      <div style={{ display: "flex", gap: "32px", marginBottom: "48px", alignItems: "stretch" }}>
-        
-        {/* Grid de Métricas */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "24px", flex: 1 }}>
-          {metrics.map((m) => (
-            <MetricCard 
-              key={m.key} 
-              label={m.label} 
-              sublabel={m.sublabel} 
-              value={data?.[m.key]} 
-            />
-          ))}
-        </div>
-
-        {/* Tarjeta de Destacado / Pendientes */}
-        <div style={{
-          width: "240px", 
-          padding: "32px 24px",
-          backgroundColor: "#8B9467",
-          borderRadius: "24px",
-          color: "#FFFFFF",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          boxShadow: "0 10px 30px rgba(139, 148, 103, 0.3)"
-        }}>
-          <div>
-            <div style={{ fontSize: "14px", fontWeight: "600", opacity: 0.8, marginBottom: "8px" }}>Pendientes</div>
-            <div style={{ fontSize: "28px", fontFamily: "'Lora', serif" }}>15 Pedidos</div>
-            <p style={{ fontSize: "12px", opacity: 0.9, marginTop: "12px", lineHeight: "1.6" }}>
-              Tienes órdenes listas para empaquetar y enviar hoy.
-            </p>
-          </div>
-          <button style={{
-            backgroundColor: "#FFFFFF",
-            color: "#8B9467",
-            border: "none",
-            padding: "12px",
-            borderRadius: "12px",
-            fontWeight: "700",
-            fontSize: "13px",
-            cursor: "pointer"
-          }}>
-            Ver Detalles 🧺
-          </button>
-        </div>
+      {/* METRICAS */}
+      <div style={{ 
+        display: "grid",
+        gridTemplateColumns: "repeat(2, 1fr)",
+        gap: "24px",
+        marginBottom: "48px"
+      }}>
+        {metrics.map((m) => (
+          <MetricCard
+            key={m.key}
+            label={m.label}
+            sublabel={m.sublabel}
+            value={data?.[m.key]}
+          />
+        ))}
       </div>
 
-      {/* Sección de Actividad */}
+      {/* ACTIVIDAD */}
       <div style={{
         backgroundColor: "#FFFFFF",
         padding: "40px",
@@ -189,42 +199,204 @@ export default function Dashboard() {
         boxShadow: "0 4px 30px rgba(0,0,0,0.02)",
         border: "1px solid #E8E4DE"
       }}>
+
         <div style={{
-          display: "flex", 
-          justifyContent: "space-between", 
+          display: "flex",
+          justifyContent: "space-between",
           alignItems: "center",
           marginBottom: "12px",
           borderBottom: "1px solid #F1F0E8",
           paddingBottom: "24px"
         }}>
-          <h3 style={{ 
-            margin: 0, 
-            fontSize: "24px", 
-            fontWeight: "400", 
+
+          <h3 style={{
+            margin: 0,
+            fontSize: "24px",
+            fontWeight: "400",
             fontFamily: "'Lora', serif",
-            color: "#4A453E" 
+            color: "#4A453E"
           }}>
             Actividad Reciente
           </h3>
-          <button style={{
-            backgroundColor: "transparent",
-            color: "#8B9467",
-            border: "none",
-            fontWeight: "700",
-            fontSize: "14px",
-            cursor: "pointer"
-          }}>
-            Ver historial completo →
-          </button>
+
         </div>
 
         <div>
-          <ActivityRow icon="user-plus" iconColor="#8B9467" title="Nuevo usuario registrado: Pedro G." date="22 Mayo, 2026, 08:24" label="Cliente" btnText="Perfil" />
-          <ActivityRow icon="package" iconColor="#A3AD85" title="Pedido completado #1234" date="23 Mayo, 2026, 09:15" label="Venta" btnText="Recibo" />
-          <ActivityRow icon="refresh" iconColor="#B4B0AB" title="Proveedor actualizado: Hilos Finos" date="23 Mayo, 2026, 11:40" label="Suministros" btnText="Archivar" noBorder />
+          {recentLogs.map((log, index) => {
+
+            const action = (log.action || "").toUpperCase();
+
+            let icon = "activity";
+            let color = "#8B9467";
+
+            if (action.includes("CREA")) {
+              icon = "user-plus";
+              color = "#8B9467";
+            }
+
+            if (action.includes("DELETE")) {
+              icon = "trash";
+              color = "#dc2626";
+            }
+
+            if (action.includes("UPDATE")) {
+              icon = "refresh";
+              color = "#A3AD85";
+            }
+
+            return (
+              <ActivityRow
+                key={log.id || log._id}
+                icon={icon}
+                iconColor={color}
+                title={
+                  log.details?.mensaje ||
+                  `${log.action} en ${log.resource}`
+                }
+                date={new Date(
+                  log.createdAt || log.fecha
+                ).toLocaleString("es-MX")}
+                label={log.resource || "Sistema"}
+                btnText="Ver"
+                noBorder={index === recentLogs.length - 1}
+                onView={() => setSelectedLog(log)}
+              />
+            );
+          })}
         </div>
+
       </div>
 
     </div>
-  );
+
+    {/* MODAL DETALLES */}
+    {selectedLog && (
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(0,0,0,0.4)",
+          backdropFilter: "blur(4px)",
+          zIndex: 100,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "20px"
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            maxWidth: "700px",
+            backgroundColor: "#FFFFFF",
+            borderRadius: "28px",
+            overflow: "hidden",
+            border: "1px solid #E8E4DE",
+            boxShadow: "0 20px 50px rgba(0,0,0,0.15)"
+          }}
+        >
+
+          {/* HEADER */}
+          <div
+            style={{
+              padding: "28px 32px",
+              borderBottom: "1px solid #F1F0E8",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
+            }}
+          >
+
+            <div>
+              <div
+                style={{
+                  fontSize: "12px",
+                  fontWeight: "700",
+                  color: "#8B9467",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px"
+                }}
+              >
+                Auditoría
+              </div>
+
+              <h2
+                style={{
+                  margin: "8px 0 0",
+                  fontSize: "28px",
+                  fontFamily: "'Lora', serif",
+                  color: "#4A453E"
+                }}
+              >
+                Detalles del Evento
+              </h2>
+            </div>
+
+            <button
+              onClick={() => setSelectedLog(null)}
+              style={{
+                width: "42px",
+                height: "42px",
+                borderRadius: "12px",
+                border: "none",
+                backgroundColor: "#F4F6EE",
+                cursor: "pointer"
+              }}
+            >
+              ✕
+            </button>
+
+          </div>
+
+          {/* BODY */}
+          <div style={{ padding: "32px" }}>
+
+            <div style={{ marginBottom: "24px" }}>
+              <strong>Usuario:</strong>{" "}
+              {selectedLog.usuario || "Sistema"}
+            </div>
+
+            <div style={{ marginBottom: "24px" }}>
+              <strong>Acción:</strong>{" "}
+              {selectedLog.action}
+            </div>
+
+            <div style={{ marginBottom: "24px" }}>
+              <strong>Recurso:</strong>{" "}
+              {selectedLog.resource}
+            </div>
+
+            <div style={{ marginBottom: "24px" }}>
+              <strong>Fecha:</strong>{" "}
+              {new Date(
+                selectedLog.createdAt || selectedLog.fecha
+              ).toLocaleString("es-MX")}
+            </div>
+
+            <div>
+              <strong>Información técnica:</strong>
+
+              <pre
+                style={{
+                  marginTop: "12px",
+                  backgroundColor: "#1F2937",
+                  color: "#A7F3D0",
+                  padding: "20px",
+                  borderRadius: "16px",
+                  overflowX: "auto",
+                  fontSize: "12px"
+                }}
+              >
+                {JSON.stringify(selectedLog.details, null, 2)}
+              </pre>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    )}
+  </>
+);
+  
 }
