@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import api from "../../services/api";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 export default function NewReceptionModal({ isOpen, onClose, onSuccess }) {
-  // --- ESTADO DE PROVEEDORES DE LA BASE DE DATOS ---
   const [proveedores, setProveedores] = useState([]);
   
-  // --- ESTADOS DEL FORMULARIO ---
   const [formData, setFormData] = useState({
     proveedorId: "",
     documento: "",
@@ -14,20 +12,22 @@ export default function NewReceptionModal({ isOpen, onClose, onSuccess }) {
     notas: ""
   });
 
-  // Lista dinámica de productos
   const [items, setItems] = useState([]);
-
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState(null);
 
-  // --- CARGAR PROVEEDORES AL ABRIR ---
+  const dialogRef = useRef(null);
+
   useEffect(() => {
     if (isOpen) {
+      dialogRef.current?.showModal();
       cargarProveedores();
       setFormData({ proveedorId: "", documento: "", estado: "ENTREGADO", notas: "" });
       setItems([{ id: Date.now(), nombreProducto: "", cantidad: 1, costoUnitario: 0 }]);
       setError(null);
+    } else {
+      dialogRef.current?.close();
     }
   }, [isOpen]);
 
@@ -38,19 +38,17 @@ export default function NewReceptionModal({ isOpen, onClose, onSuccess }) {
       const listaProv = response.data?.items || response.data || [];
       setProveedores(listaProv);
     } catch (error) {
-      console.error("Error al cargar proveedores de la base de datos:", error);
+      console.error("Error al cargar proveedores:", error);
     } finally {
       setFetching(false);
     }
   };
 
-  // --- MANEJO DEL FORMULARIO GENERAL ---
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // --- MANEJO DE LA LISTA DE PRODUCTOS MANUALES ---
   const handleAddItem = () => {
     setItems([...items, { id: Date.now(), nombreProducto: "", cantidad: 1, costoUnitario: 0 }]);
   };
@@ -70,7 +68,6 @@ export default function NewReceptionModal({ isOpen, onClose, onSuccess }) {
     }));
   };
 
-  // --- CÁLCULOS EN TIEMPO REAL ---
   const totales = useMemo(() => {
     return items.reduce((acc, item) => {
       const cant = Number(item.cantidad) || 0;
@@ -86,7 +83,6 @@ export default function NewReceptionModal({ isOpen, onClose, onSuccess }) {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
   };
 
-  // --- ENVIAR DATOS AL BACKEND ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -129,265 +125,223 @@ export default function NewReceptionModal({ isOpen, onClose, onSuccess }) {
     }
   };
 
-  if (!isOpen) return null;
+  const inputBaseClass = "w-full !bg-[#f8f8f6] border-none rounded-2xl py-3 !pl-12 pr-4 !text-[#2D2D2D] text-sm focus:ring-2 focus:ring-[#8d9b70]/30 outline-none transition-all placeholder:text-gray-400";
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-5xl bg-white rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden animate-[fadeIn_.2s_ease] my-auto">
+    <dialog ref={dialogRef} className="modal modal-bottom sm:modal-middle backdrop-blur-sm" data-theme="light" onCancel={onClose}>
+    
+      <div className="modal-box !bg-white rounded-3xl p-8 max-w-4xl shadow-2xl relative !text-[#1F2937]">
         
-        {/* DECORACIÓN SUPERIOR */}
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-r from-[#8d9b70] via-[#95a67a] to-[#7c8b61]" />
-        
-        <div className="relative z-10">
-          {/* HEADER */}
-          <div className="px-6 sm:px-10 pt-8 pb-6 flex justify-between items-start">
-            <div className="flex items-center gap-5">
-              <div className="w-16 h-16 rounded-[1.5rem] bg-white/20 border border-white/20 backdrop-blur-md flex items-center justify-center shadow-lg">
-                <i className="bi bi-box-arrow-in-down text-white text-3xl"></i>
+        <button onClick={onClose} className="absolute top-6 right-6 text-gray-400 hover:text-gray-700 transition-colors" disabled={loading}>
+          <i className="bi bi-x-lg text-lg"></i>
+        </button>
+
+        {/* HEADER */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-widest !text-[#8d9b70] font-semibold mb-2">
+            <i className="bi bi-box-arrow-in-down text-lg"></i>
+            Entrada de Mercancía
+          </div>
+          <h3 className="text-xl font-medium !text-[#1F2937]">
+            Nueva Recepción
+          </h3>
+        </div>
+
+        {error && (
+          <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl bg-red-50 text-red-600 text-sm font-medium">
+            <i className="bi bi-exclamation-triangle-fill"></i>
+            <span>{error}</span>
+          </div>
+        )}
+
+        {fetching ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <span className="loading loading-spinner loading-lg text-[#8d9b70]"></span>
+            <p className="mt-4 text-gray-500 font-medium">Sincronizando proveedores...</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* DATOS DEL DOCUMENTO */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              {/* PROVEEDOR */}
+              <div className="form-control w-full relative md:col-span-2">
+                <label className="label-text text-[11px] uppercase tracking-wider !text-[#8d9b70] font-semibold mb-2 ml-1">Proveedor *</label>
+                <div className="relative w-full">
+                  <i className="bi bi-building absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none z-10"></i>
+                  <select 
+                    required 
+                    name="proveedorId" 
+                    value={formData.proveedorId} 
+                    onChange={handleFormChange}
+                    className={`${inputBaseClass} appearance-none cursor-pointer`}
+                    disabled={loading}
+                  >
+                    <option value="" disabled>Selecciona un proveedor...</option>
+                    {proveedores.map(p => (
+                      <option key={p.id} value={p.id}>{p.nombre}</option>
+                    ))}
+                  </select>
+                  <i className="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs z-10"></i>
+                </div>
               </div>
-              <div>
-                <p className="text-white/80 uppercase tracking-[0.25em] text-xs font-semibold mb-1">Entrada de Mercancía</p>
-                <h2 className="text-3xl font-bold text-white">Nueva Recepción</h2>
+
+              {/* ESTADO */}
+              <div className="form-control w-full relative">
+                <label className="label-text text-[11px] uppercase tracking-wider !text-[#8d9b70] font-semibold mb-2 ml-1">Estado</label>
+                <div className="relative w-full">
+                  <i className="bi bi-flag absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none z-10"></i>
+                  <select 
+                    name="estado" 
+                    value={formData.estado} 
+                    onChange={handleFormChange}
+                    className={`${inputBaseClass} appearance-none cursor-pointer`}
+                    disabled={loading}
+                  >
+                    <option value="ENTREGADO">ENTREGADO</option>
+                    <option value="PENDIENTE">PENDIENTE DE LLEGAR</option>
+                  </select>
+                  <i className="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs z-10"></i>
+                </div>
+              </div>
+
+              {/* DOCUMENTO */}
+              <div className="form-control w-full relative">
+                <label className="label-text text-[11px] uppercase tracking-wider !text-[#8d9b70] font-semibold mb-2 ml-1">Factura/Nota (Opcional)</label>
+                <div className="relative w-full">
+                  <i className="bi bi-receipt absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none"></i>
+                  <input 
+                    type="text" 
+                    name="documento" 
+                    placeholder="Ej: REM-55432" 
+                    className={inputBaseClass} 
+                    value={formData.documento} 
+                    onChange={handleFormChange} 
+                    disabled={loading}
+                  />
+                </div>
               </div>
             </div>
-            <button onClick={onClose} className="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 text-white flex items-center justify-center hover:bg-white hover:text-[#8d9b70] transition-all">
-              <i className="bi bi-x-lg text-lg"></i>
-            </button>
-          </div>
 
-          {/* CUERPO DEL MODAL */}
-          <div className="bg-[#F8FAF5] rounded-t-[2.5rem] px-6 sm:px-10 py-8">
-            {error && (
-              <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-medium">
-                <i className="bi bi-exclamation-triangle-fill"></i>
-                <span>{error}</span>
+            {/* PRODUCTOS MANUALES */}
+            <div className="mt-8 border-t border-gray-100 pt-6">
+              <label className="label-text text-[11px] uppercase tracking-wider !text-[#8d9b70] font-semibold mb-4 ml-1 block">Artículos Recibidos</label>
+              
+              <div className="hidden md:grid grid-cols-12 gap-2 px-4 pb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                <div className="col-span-5">Producto</div>
+                <div className="col-span-2 text-center">Cantidad</div>
+                <div className="col-span-2 text-right">Costo Unit.</div>
+                <div className="col-span-2 text-right">Subtotal</div>
+                <div className="col-span-1"></div>
               </div>
-            )}
 
-            {fetching ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <span className="loading loading-spinner loading-lg text-[#8d9b70]"></span>
-                <p className="mt-4 text-gray-500 font-medium">Sincronizando proveedores de la base de datos...</p>
+              <div className="space-y-3">
+                {items.map((item) => (
+                  <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                    
+                    <div className="col-span-1 md:col-span-5 relative">
+                      <input 
+                        type="text"
+                        required
+                        placeholder="Nombre del artículo"
+                        value={item.nombreProducto}
+                        onChange={(e) => handleItemChange(item.id, 'nombreProducto', e.target.value)}
+                        className="w-full !bg-[#f8f8f6] border-none rounded-2xl !py-3 !px-4 !text-[#2D2D2D] text-sm focus:ring-2 focus:ring-[#8d9b70]/30 outline-none"
+                        disabled={loading}
+                      />
+                    </div>
+
+                    <div className="col-span-1 md:col-span-2 relative">
+                      <input 
+                        type="number" 
+                        min="1"
+                        required
+                        placeholder="Cant."
+                        value={item.cantidad}
+                        onChange={(e) => handleItemChange(item.id, 'cantidad', e.target.value)}
+                        className="w-full !bg-[#f8f8f6] border-none rounded-2xl py-3 px-4 !text-[#2D2D2D] text-sm text-center focus:ring-2 focus:ring-[#8d9b70]/30 outline-none"
+                        disabled={loading}
+                      />
+                    </div>
+
+                    <div className="col-span-1 md:col-span-2 relative">
+                      <input 
+                        type="number" 
+                        min="0"
+                        step="0.01"
+                        required
+                        placeholder="Costo"
+                        value={item.costoUnitario}
+                        onChange={(e) => handleItemChange(item.id, 'costoUnitario', e.target.value)}
+                        className="w-full !bg-[#f8f8f6] border-none rounded-2xl py-3 px-4 !text-[#2D2D2D] text-sm text-right focus:ring-2 focus:ring-[#8d9b70]/30 outline-none"
+                        disabled={loading}
+                      />
+                    </div>
+
+                    <div className="col-span-1 md:col-span-2 text-right px-2">
+                      <span className="font-medium text-[#1F2937] text-sm block py-3">
+                        {formatMoney((Number(item.cantidad) || 0) * (Number(item.costoUnitario) || 0))}
+                      </span>
+                    </div>
+
+                    <div className="col-span-1 md:col-span-1 flex justify-center">
+                      <button 
+                        type="button" 
+                        onClick={() => handleRemoveItem(item.id)}
+                        disabled={items.length === 1 || loading}
+                        className="w-10 h-10 rounded-full text-red-400 hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center disabled:opacity-30"
+                      >
+                        <i className="bi bi-trash"></i>
+                      </button>
+                    </div>
+
+                  </div>
+                ))}
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-8">
-                
-                {/* SECCIÓN 1: DATOS GENERALES */}
-                <div className="bg-white p-6 rounded-[2rem] border border-[#DDE5CD] shadow-sm">
-                  <h3 className="text-sm font-black uppercase tracking-wider text-gray-800 mb-5 flex items-center gap-2">
-                    <i className="bi bi-info-circle text-[#8d9b70]"></i> Datos del Documento
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    {/* Proveedor Base de Datos */}
-                    <div className="md:col-span-2">
-                      <label className="text-xs font-bold uppercase tracking-wider text-[#7c8b61] mb-2 block">Proveedor (Desde Base de Datos) *</label>
-                      <div className="relative">
-                        <select 
-                          required 
-                          name="proveedorId" 
-                          value={formData.proveedorId} 
-                          onChange={handleFormChange}
-                          // Cambiamos el padding: pl-5 pr-12
-                          className="w-full pl-5 pr-12 py-3.5 rounded-2xl bg-[#F8FAF5] border border-[#DDE5CD] text-gray-700 font-medium outline-none focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10 appearance-none"
-                        >
-                          <option value="" disabled>Selecciona un proveedor registrado...</option>
-                          {proveedores.map(p => (
-                            <option key={p.id} value={p.id}>{p.nombre}</option>
-                          ))}
-                        </select>
-                        {/* Ícono a la derecha */}
-                        <i className="bi bi-building absolute right-5 top-1/2 -translate-y-1/2 text-[#8d9b70] text-lg pointer-events-none"></i>
-                      </div>
-                      {proveedores.length === 0 && (
-                         <p className="text-xs text-red-500 mt-2 font-medium">No hay proveedores registrados. Ve al módulo de proveedores para crear uno.</p>
-                      )}
-                    </div>
 
-                    {/* Estado */}
-                    <div>
-                      <label className="text-xs font-bold uppercase tracking-wider text-[#7c8b61] mb-2 block">Estado de Recepción</label>
-                      <div className="relative">
-                        <select 
-                          name="estado" 
-                          value={formData.estado} 
-                          onChange={handleFormChange}
-                          // Cambiamos el padding: pl-5 pr-12
-                          className="w-full pl-5 pr-12 py-3.5 rounded-2xl bg-[#F8FAF5] border border-[#DDE5CD] text-gray-700 font-bold outline-none focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10 appearance-none"
-                        >
-                          <option value="ENTREGADO">ENTREGADO</option>
-                          <option value="PENDIENTE">PENDIENTE DE LLEGAR</option>
-                        </select>
-                        {/* Ícono a la derecha */}
-                        <i className="bi bi-flag absolute right-5 top-1/2 -translate-y-1/2 text-[#8d9b70] text-lg pointer-events-none"></i>
-                      </div>
-                    </div>
+              <button 
+                type="button" 
+                onClick={handleAddItem}
+                className="mt-3 text-sm font-medium text-[#8d9b70] hover:text-[#6A734D] flex items-center gap-2 transition-colors ml-2"
+                disabled={loading}
+              >
+                <i className="bi bi-plus-circle"></i> Añadir otro artículo
+              </button>
+            </div>
 
-                    {/* Documento */}
-                    <div className="md:col-span-3">
-                      <label className="text-xs font-bold uppercase tracking-wider text-[#7c8b61] mb-2 block">Factura o Nota de Remisión (Opcional)</label>
-                      <div className="relative">
-                        <input 
-                          type="text" 
-                          name="documento" 
-                          placeholder="Ej. REM-55432" 
-                          value={formData.documento} 
-                          onChange={handleFormChange}
-                          // Cambiamos el padding: pl-5 pr-12
-                          className="w-full pl-5 pr-12 py-3.5 rounded-2xl bg-[#F8FAF5] border border-[#DDE5CD] text-gray-700 outline-none transition-all focus:border-[#8d9b70] focus:ring-4 focus:ring-[#8d9b70]/10"
-                        />
-                        {/* Ícono a la derecha */}
-                        <i className="bi bi-receipt absolute right-5 top-1/2 -translate-y-1/2 text-[#8d9b70] text-lg pointer-events-none"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            {/* TOTALES Y BOTONES DE ACCIÓN */}
+            <div className="border-t border-gray-100 pt-6 mt-8">
+              <div className="flex justify-between items-center mb-6 px-4 py-4 bg-[#f8f8f6] rounded-2xl">
+                <span className="text-sm font-semibold text-gray-500">Total Artículos: {totales.articulos}</span>
+                <span className="text-lg font-bold text-[#8d9b70]">{formatMoney(totales.monto)}</span>
+              </div>
 
-                {/* SECCIÓN 2: PRODUCTOS MANUALES */}
-                <div className="bg-white p-6 rounded-[2rem] border border-[#DDE5CD] shadow-sm">
-                  <div className="flex justify-between items-center mb-5">
-                    <h3 className="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
-                      <i className="bi bi-pen text-[#8d9b70]"></i> Captura Manual de Productos
-                    </h3>
-                  </div>
+              <div className="modal-action mt-4 flex justify-center gap-8 border-none pt-0">
+                <button type="button" className="flex items-center gap-2 px-6 py-2 rounded-full !text-gray-500 font-medium hover:!bg-gray-100 hover:!text-gray-800 transition-all duration-300" onClick={onClose} disabled={loading}>
+                  <i className="bi bi-x-circle text-lg"></i> Cancelar
+                </button>
+                <button type="submit" className="flex items-center gap-2 px-6 py-2 rounded-full !text-[#1F2937] font-medium hover:!bg-[#EEF1E7] hover:!text-[#6A734D] transition-all duration-300" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <span className="loading loading-spinner loading-xs"></span> Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-check-circle-fill text-lg"></i> Guardar Recepción
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
 
-                  <div className="hidden md:grid grid-cols-12 gap-3 px-4 pb-2 border-b border-[#EEF2E7] text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    <div className="col-span-5">Descripción / Nombre del Producto</div>
-                    <div className="col-span-2 text-center">Cantidad</div>
-                    <div className="col-span-2 text-right">Costo Unit.</div>
-                    <div className="col-span-2 text-right">Subtotal</div>
-                    <div className="col-span-1 text-center"></div>
-                  </div>
-
-                  <div className="space-y-3 mt-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-                    {items.map((item, index) => (
-                      <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-[#FAFBF8] p-3 md:p-2 rounded-2xl border border-[#EEF2E7] transition-all hover:border-[#DDE5CD]">
-                        
-                        {/* PRODUCTO */}
-                        <div className="col-span-1 md:col-span-5 relative">
-                          <label className="md:hidden text-xs font-bold text-gray-500 mb-1 block">Producto</label>
-                          <input 
-                            type="text"
-                            required
-                            placeholder="Ej. Estambre rojo..."
-                            value={item.nombreProducto}
-                            onChange={(e) => handleItemChange(item.id, 'nombreProducto', e.target.value)}
-                            // Padding ajustado
-                            className="w-full pl-4 pr-10 py-2.5 rounded-xl bg-white border border-[#DDE5CD] text-sm text-gray-700 outline-none focus:border-[#8d9b70]"
-                          />
-                          <i className="bi bi-box-seam absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none md:top-1/2 md:mt-0 mt-[12px]"></i>
-                        </div>
-
-                        {/* CANTIDAD */}
-                        <div className="col-span-1 md:col-span-2 relative">
-                          <label className="md:hidden text-xs font-bold text-gray-500 mb-1 block">Cantidad</label>
-                          <input 
-                            type="number" 
-                            min="1"
-                            required
-                            value={item.cantidad}
-                            onChange={(e) => handleItemChange(item.id, 'cantidad', e.target.value)}
-                            // Padding ajustado
-                            className="w-full pl-4 pr-10 py-2.5 rounded-xl bg-white border border-[#DDE5CD] text-sm text-center text-gray-700 outline-none focus:border-[#8d9b70]"
-                          />
-                          <i className="bi bi-hash absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none md:top-1/2 md:mt-0 mt-[12px]"></i>
-                        </div>
-
-                        {/* COSTO UNITARIO */}
-                        <div className="col-span-1 md:col-span-2 relative">
-                          <label className="md:hidden text-xs font-bold text-gray-500 mb-1 block">Costo Unitario</label>
-                          <input 
-                            type="number" 
-                            min="0"
-                            step="0.01"
-                            required
-                            value={item.costoUnitario}
-                            onChange={(e) => handleItemChange(item.id, 'costoUnitario', e.target.value)}
-                            // Padding ajustado
-                            className="w-full pl-4 pr-10 py-2.5 rounded-xl bg-white border border-[#DDE5CD] text-sm text-right text-gray-700 outline-none focus:border-[#8d9b70]"
-                          />
-                          <i className="bi bi-currency-dollar absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none md:top-1/2 md:mt-0 mt-[12px]"></i>
-                        </div>
-
-                        {/* SUBTOTAL */}
-                        <div className="col-span-1 md:col-span-2 text-right">
-                          <label className="md:hidden text-xs font-bold text-gray-500 mb-1 block">Subtotal</label>
-                          <span className="font-bold text-[#5F6F52] bg-[#EEF2E7] px-3 py-2.5 rounded-xl block">
-                            {formatMoney((Number(item.cantidad) || 0) * (Number(item.costoUnitario) || 0))}
-                          </span>
-                        </div>
-
-                        {/* ELIMINAR */}
-                        <div className="col-span-1 md:col-span-1 flex justify-center mt-2 md:mt-0">
-                          <button 
-                            type="button" 
-                            onClick={() => handleRemoveItem(item.id)}
-                            disabled={items.length === 1}
-                            className="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center disabled:opacity-30"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </button>
-                        </div>
-
-                      </div>
-                    ))}
-                  </div>
-
-                  <button 
-                    type="button" 
-                    onClick={handleAddItem}
-                    className="mt-4 text-sm font-bold text-[#7c8b61] flex items-center gap-2 hover:text-[#5F6F52] transition-colors bg-[#F8FAF5] px-4 py-2 rounded-xl"
-                  >
-                    <i className="bi bi-plus-circle-fill"></i> Agregar otro producto
-                  </button>
-                </div>
-
-                {/* SECCIÓN 3: TOTALES Y ACCIONES */}
-                <div className="flex flex-col md:flex-row gap-6 justify-between items-end border-t border-[#DDE5CD] pt-6">
-                  
-                  <div className="flex gap-6 bg-[#EEF2E7] px-6 py-4 rounded-3xl border border-[#DDE5CD] w-full md:w-auto">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-[#7E8B63] font-bold">Total Artículos</p>
-                      <p className="text-2xl font-black text-gray-800">{totales.articulos}</p>
-                    </div>
-                    <div className="w-px bg-[#DDE5CD] mx-2"></div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-[#7E8B63] font-bold">Monto de Entrada</p>
-                      <p className="text-2xl font-black text-[#5F6F52]">{formatMoney(totales.monto)}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4 w-full md:w-auto">
-                    <button 
-                      type="button" 
-                      onClick={onClose} 
-                      className="flex-1 md:flex-none px-8 py-4 rounded-2xl bg-white border border-[#DDE5CD] text-gray-700 font-bold hover:bg-gray-50 transition-all"
-                    >
-                      Cancelar
-                    </button>
-
-                    <button 
-                      type="submit" 
-                      disabled={loading || proveedores.length === 0} 
-                      className="flex-1 md:flex-none px-8 py-4 rounded-2xl bg-gradient-to-r from-[#8d9b70] to-[#7c8b61] text-white font-bold shadow-lg hover:shadow-xl hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                      {loading ? (
-                        <span className="loading loading-spinner loading-sm"></span>
-                      ) : (
-                        <>
-                          <i className="bi bi-check-circle-fill"></i> Registrar Entrada
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                </div>
-
-              </form>
-            )}
-          </div>
-        </div>
+          </form>
+        )}
       </div>
-    </div>
+
+      <form method="dialog" className="modal-backdrop">
+        <button onClick={onClose}>close</button>
+      </form>
+    </dialog>
   );
 }

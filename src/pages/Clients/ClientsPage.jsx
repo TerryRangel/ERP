@@ -73,7 +73,7 @@ export default function ClientsPage() {
                 rounded-2xl
                 border border-[#E5EBDD]
                 bg-white
-                pl-5 pr-14
+                !pl-5 !pr-14
                 text-sm
                 font-medium
                 text-gray-700
