@@ -88,7 +88,6 @@ export default function AppRoutes() {
           />
           {/* ------------------------------------ */}
 
-          {/* RUTA EXPLÍCITA DEL DETECTIVE */}
           <Route path="/unauthorized" element={<Unauthorized />} />
 
           {/* El comodín (*) SIEMPRE debe ir al final de la lista */}
