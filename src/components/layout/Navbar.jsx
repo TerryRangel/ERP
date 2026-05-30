@@ -28,20 +28,57 @@ export default function Navbar({ onMenuClick, isMobile }) {
   const roleLabel = userRole === "ADMIN" ? "Administrador/a" : "Usuario Estándar";
 
   const searchablePages = [
-    { name: "Dashboard",  path: "/dashboard",  icon: "bi-speedometer2",        permissions: ["dashboard:read"] },
-    { name: "Productos",  path: "/products",   icon: "bi-bag-fill",            permissions: ["products:read"] },
-    { name: "Proveedores",path: "/suppliers",  icon: "bi-shop",                permissions: ["suppliers:read"] },
-    { name: "Auditoría",  path: "/audit",      icon: "bi-clipboard2-data-fill",permissions: ["audit:read"] },
-    { name: "Usuarios",   path: "/users",      icon: "bi-people-fill",         permissions: ["users:read"] },
-    { name: "Clientes",   path: "/clients",    icon: "bi-person-fill",         permissions: ["clients:read"] },
-    { name: "Inventario", path: "/inventory",  icon: "bi-inboxes-fill",        permissions: ["inventory:read"] },
+    // --- DASHBOARD ---
+    { name: "Dashboard (Resumen)", path: "/dashboard", icon: "bi-speedometer2", permissions: ["dashboard:read"] },
+
+    // --- AUDITORÍA ---
+    { name: "Auditoría (Registro de eventos)", path: "/audit", icon: "bi-clipboard2-data-fill", permissions: ["audit:read"] },
+
+    // --- USUARIOS ---
+    { name: "Directorio de Usuarios", path: "/users", icon: "bi-people-fill", permissions: ["users:read"] },
+    { name: "Agregar Nuevo Usuario", path: "/users", icon: "bi-person-plus-fill", permissions: ["users:create"] },
+    { name: "Editar Usuario", path: "/users", icon: "bi-person-gear", permissions: ["users:create"] },
+    { name: "Eliminar Usuario", path: "/users", icon: "bi-person-dash-fill", permissions: ["users:create"] },
+
+    // --- PRODUCTOS ---
+    { name: "Catálogo de Productos", path: "/products", icon: "bi-bag-fill", permissions: ["products:read"] },
+    { name: "Agregar Nuevo Producto", path: "/products", icon: "bi-bag-plus-fill", permissions: ["products:create"] },
+    { name: "Editar Producto", path: "/products", icon: "bi-pencil-square", permissions: ["products:create"] },
+    { name: "Eliminar Producto", path: "/products", icon: "bi-trash3-fill", permissions: ["products:create"] },
+
+    // --- PROVEEDORES ---
+    { name: "Directorio de Proveedores", path: "/suppliers", icon: "bi-shop", permissions: ["suppliers:read"] },
+    { name: "Agregar Nuevo Proveedor", path: "/suppliers", icon: "bi-building-add", permissions: ["suppliers:create"] },
+    { name: "Editar Proveedor", path: "/suppliers", icon: "bi-building-gear", permissions: ["suppliers:create"] },
+    { name: "Eliminar Proveedor", path: "/suppliers", icon: "bi-building-dash", permissions: ["suppliers:create"] },
+
+    // --- CLIENTES ---
+    { name: "Directorio de Clientes", path: "/clients", icon: "bi-person-vcard", permissions: ["clients:read"] },
+    { name: "Agregar Nuevo Cliente", path: "/clients", icon: "bi-person-plus-fill", permissions: ["clients:create"] },
+    { name: "Editar Cliente", path: "/clients", icon: "bi-person-lines-fill", permissions: ["clients:create"] },
+    { name: "Eliminar Cliente", path: "/clients", icon: "bi-person-x-fill", permissions: ["clients:create"] },
+
+    // --- INVENTARIO ---
+    { name: "Control de Inventario", path: "/inventory", icon: "bi-inboxes-fill", permissions: ["inventory:read"] },
+    { name: "Actualizar Stock (Inventario)", path: "/inventory", icon: "bi-arrow-repeat", permissions: ["inventory:create"] },
+
+    // --- RECEPCIONES ---
+    { name: "Historial de Recepciones", path: "/receptions", icon: "bi-truck", permissions: ["recepciones:read"] },
+    { name: "Registrar Nueva Recepción", path: "/receptions", icon: "bi-box-arrow-in-down", permissions: ["recepciones:create"] },
+    { name: "Confirmar Entrega (Recepción)", path: "/receptions", icon: "bi-check2-all", permissions: ["recepciones:update"] },
+    { name: "Eliminar Recepción", path: "/receptions", icon: "bi-trash", permissions: ["recepciones:delete"] },
   ];
 
   const filteredPages = searchablePages.filter((page) => {
-    const matchesSearch = page.name.toLowerCase().includes(searchQuery.toLowerCase());
-    if (userRole === "ADMIN") return matchesSearch;
+    if (searchQuery.trim() === "") return false;
+    const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/);
+    const matchesSearch = searchTerms.every((term) => 
+      page.name.toLowerCase().includes(term)
+    );
+    if (!matchesSearch) return false;
+    if (userRole === "ADMIN") return true;
     const hasPermission = page.permissions.some((p) => user?.permissions?.includes(p));
-    return matchesSearch && hasPermission;
+    return hasPermission;
   });
 
   useEffect(() => {
@@ -374,7 +411,11 @@ export default function Navbar({ onMenuClick, isMobile }) {
 }
 
 // ─── Componente auxiliar para el dropdown de búsqueda ──────────────────────
+// Componente auxiliar para el dropdown de búsqueda
 function SearchDropdown({ filteredPages, onNavigate, style = {} }) {
+  // Si no hay resultados, no renderizamos absolutamente nada (desaparece la caja blanca)
+  if (filteredPages.length === 0) return null;
+
   return (
     <div style={{
       position: "absolute", top: "110%", left: 0, right: 0,
@@ -383,29 +424,19 @@ function SearchDropdown({ filteredPages, onNavigate, style = {} }) {
       overflow: "hidden", zIndex: 1000,
       ...style,
     }}>
-      {filteredPages.length > 0 ? (
-        <>
-          <div style={{ padding: "10px 15px", fontSize: "11px", fontWeight: "bold", color: "#9CA3AF", textTransform: "uppercase", borderBottom: "1px solid #F3F4F6" }}>
-            Resultados sugeridos
-          </div>
-          {filteredPages.map((page) => (
-            <div
-              key={page.path}
-              onClick={() => onNavigate(page.path)}
-              style={{ padding: "12px 15px", display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", color: "#4B5563" }}
-              onMouseOver={(e) => { e.currentTarget.style.background = "#F9FAFB"; e.currentTarget.style.color = "#8d9b70"; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#4B5563"; }}
-            >
-              <i className={`bi ${page.icon}`} style={{ fontSize: "16px" }} />
-              <span style={{ fontSize: "14px", fontWeight: "500" }}>{page.name}</span>
-            </div>
-          ))}
-        </>
-      ) : (
-        <div style={{ padding: "15px", textAlign: "center", color: "#9CA3AF", fontSize: "13px" }}>
-          No se encontraron módulos permitidos
+      {filteredPages.map((page) => (
+        <div
+          // Usamos el 'name' como key porque ahora hay varias acciones con el mismo 'path'
+          key={page.name}
+          onClick={() => onNavigate(page.path)}
+          style={{ padding: "12px 15px", display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", color: "#4B5563" }}
+          onMouseOver={(e) => { e.currentTarget.style.background = "#F9FAFB"; e.currentTarget.style.color = "#8d9b70"; }}
+          onMouseOut={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#4B5563"; }}
+        >
+          <i className={`bi ${page.icon}`} style={{ fontSize: "16px" }} />
+          <span style={{ fontSize: "14px", fontWeight: "500" }}>{page.name}</span>
         </div>
-      )}
+      ))}
     </div>
   );
 }
