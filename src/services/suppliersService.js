@@ -26,7 +26,7 @@ export const suppliersService = {
   // Actualizar un proveedor
   updateSupplier: async (id, data) => {
     try {
-      const response = await api.put(`/suppliers/${id}`, data);
+      const response = await api.patch(`/suppliers/${id}`, data);
       return response.data;
     } catch (error) {
       console.error("Error al actualizar proveedor:", error);

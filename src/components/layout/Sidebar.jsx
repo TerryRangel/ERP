@@ -2,6 +2,8 @@ import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Can } from "../../components/can.jsx";
 import "bootstrap-icons/font/bootstrap-icons.css";
+// Importamos el logotipo desde tu carpeta assets
+import logo from "../../assets/Logotipoo.PNG"; 
 
 export default function Sidebar({ onClose, isMobile }) {
   const { logout } = useAuth();
@@ -47,18 +49,19 @@ export default function Sidebar({ onClose, isMobile }) {
         gap: "4px",
       }}>
         {/* Fila superior: logo + botón X en móvil */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "#4A453E" }}>
-            <span style={{ fontSize: "24px" }}>🧶</span>
-            <h2 style={{
-              margin: 0,
-              fontSize: "22px",
-              fontWeight: "500",
-              fontFamily: "'Lora', serif",
-              letterSpacing: "0.5px",
-            }}>
-              Tejidos
-            </h2>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" }}>
+          
+          {/* Logo en imagen centrado */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
+            <img 
+              src={logo} 
+              alt="cg.crochet_ logo" 
+              style={{ 
+                width: "140px", 
+                height: "auto", 
+                objectFit: "contain" 
+              }} 
+            />
           </div>
 
           {/* Botón cerrar — solo en móvil */}
@@ -79,24 +82,14 @@ export default function Sidebar({ onClose, isMobile }) {
                 justifyContent: "center",
                 fontSize: "18px",
                 flexShrink: 0,
+                position: "absolute",
+                right: "0px"
               }}
             >
               <i className="bi bi-x-lg" />
             </button>
           )}
         </div>
-
-        <p style={{
-          margin: 0,
-          fontSize: "10px",
-          fontWeight: "600",
-          color: "#8C867E",
-          textTransform: "uppercase",
-          letterSpacing: "1.5px",
-          paddingLeft: "36px",
-        }}>
-          Hecho a mano
-        </p>
       </div>
 
       {/* ── Navegación ── */}
@@ -175,23 +168,32 @@ export default function Sidebar({ onClose, isMobile }) {
         gap: "16px",
       }}>
         {/* Indicador de status */}
+       {/* Indicador de status - Toque de color orgánico */}
         <div style={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
-          padding: "12px 16px",
-          backgroundColor: "#F9F7F2",
-          borderRadius: "12px",
+          justifyContent: "center",
+          padding: "10px",
+          gap: "8px",
+          border: "1px solid #D7E4C0", /* Borde verde muy suave */
+          borderRadius: "8px",
+          backgroundColor: "#E8F0DD", /* Fondo verde pastel sutil */
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div style={{
-              width: "8px", height: "8px", borderRadius: "50%",
-              backgroundColor: "#86efac",
-              boxShadow: "0 0 8px rgba(134, 239, 172, 0.6)",
-            }} />
-            <span style={{ fontSize: "12px", fontWeight: "600", color: "#4A453E" }}>Sistema Online</span>
-          </div>
-          <span style={{ fontSize: "16px" }}>🧵</span>
+          <div style={{
+            width: "6px", 
+            height: "6px", 
+            borderRadius: "50%",
+            backgroundColor: "#5F6F52", /* Verde bosque oscuro para el punto */
+          }} />
+          <span style={{ 
+            fontSize: "11px", 
+            fontWeight: "700", 
+            color: "#5F6F52", /* Texto a juego con el punto */
+            textTransform: "uppercase", 
+            letterSpacing: "0.5px" 
+          }}>
+            En línea
+          </span>
         </div>
 
         {/* Botón cerrar sesión */}

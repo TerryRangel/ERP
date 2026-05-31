@@ -8,7 +8,7 @@ export default function RequirePermission({ I, children }) {
   if (loading) return null;
 
   if (!hasPermission(I)) {
-    return <Navigate to="/no-autorizado" replace />;
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return children;

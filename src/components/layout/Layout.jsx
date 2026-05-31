@@ -50,7 +50,7 @@ export default function Layout() {
             inset: 0,
             backgroundColor: "rgba(0, 0, 0, 0.45)",
             backdropFilter: "blur(2px)",
-            zIndex: 40,
+            zIndex: 110,   /* por encima del Navbar (z:100) */
             transition: "opacity 0.3s ease",
           }}
         />
@@ -62,7 +62,7 @@ export default function Layout() {
         top: 0,
         left: 0,
         height: "100%",
-        zIndex: isMobile ? 50 : 10,
+        zIndex: isMobile ? 120 : 10,   /* por encima del Navbar (z:100) y del overlay */
         transform: isMobile
           ? sidebarOpen ? "translateX(0)" : "translateX(-100%)"
           : "translateX(0)",

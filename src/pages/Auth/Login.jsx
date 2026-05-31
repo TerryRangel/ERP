@@ -5,7 +5,7 @@ import { clientService } from '../../services/clientService';
 import "bootstrap-icons/font/bootstrap-icons.css";
 import ClientFormModal from '../../components/ui/ClientFormModal.jsx';
 import interiorStyleScene from "../../assets/interior-style-scene.jpg";
-import logotipo from "../../assets/logotipoo.png";
+import logotipo from "../../assets/Logotipo.png";
 
 export default function Login() {
   const [usuario, setUsuario] = useState("");
@@ -166,15 +166,15 @@ export default function Login() {
           <div className="flex items-center gap-4 mb-16">
             <div
               className="
-                w-16
-                h-16
+                w-50
+                h-50
                 rounded-full
                 border
                 border-[#B8BE9C]
                 flex
                 items-center
                 justify-center
-                bg-[#EEF1E7]
+               
                 overflow-hidden
               "
             >
@@ -185,15 +185,7 @@ export default function Login() {
               />
             </div>
 
-            <div>
-              <h2 className="text-5xl font-serif text-[#4B3429]">
-                Tejidos
-              </h2>
-
-              <p className="uppercase tracking-[0.3em] text-sm text-[#8D9472] mt-1">
-                Hecho a mano
-              </p>
-            </div>
+            
           </div>
 
           {/* TITLE */}
