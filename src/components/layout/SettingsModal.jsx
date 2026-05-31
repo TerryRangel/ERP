@@ -1,361 +1,449 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext'; 
-import 'bootstrap-icons/font/bootstrap-icons.css';
-import api from '../../services/api';
-import { productService } from '../../services/productService';
-import { suppliersService } from '../../services/suppliersService';
+import React, { useState, useRef, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { useAudit } from "../../context/AuditContext";
+import { useNavigate, useLocation } from "react-router-dom";
+import "bootstrap-icons/font/bootstrap-icons.css";
+import { Can } from "../can.jsx";
+import SettingsModal from "./SettingsModal.jsx";
 
-export default function SettingsModal({ isOpen, onClose }) {
-  const { user, logout } = useAuth(); 
-  
-  const [activeView, setActiveView] = useState('main'); 
-  const [successMsg, setSuccessMsg] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+export default function Navbar({ onMenuClick, isMobile }) {
+  const { user, logout } = useAuth();
+  const auditContext = useAudit();
+  const latestLogs = auditContext?.latestLogs || [];
 
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [notificationsAlerts, setNotificationsAlerts] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const [profileForm, setProfileForm] = useState({ 
-    nombre: '', 
-    email: '',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showSearchBar, setShowSearchBar] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  const [businessForm, setBusinessForm] = useState({ 
-    storeName: '', receiptMessage: '', rfc: '', phone: '', address: '', currency: 'MXN'
+  // 1. Estado para controlar si mostramos o no las notificaciones
+  const [showNotifications, setShowNotifications] = useState(
+    localStorage.getItem("erp_notifications") !== "false"
+  );
+
+  const notifRef = useRef(null);
+  const profileRef = useRef(null);
+  const searchRef = useRef(null);
+
+  const userRole = user?.role?.toUpperCase() || "USER";
+  const roleLabel = userRole === "ADMIN" ? "Administrador/a" : "Usuario Estándar";
+
+  const searchablePages = [
+    // --- DASHBOARD ---
+    { name: "Dashboard (Resumen)", path: "/dashboard", icon: "bi-speedometer2", permissions: ["dashboard:read"] },
+    // --- AUDITORÍA ---
+    { name: "Auditoría (Registro de eventos)", path: "/audit", icon: "bi-clipboard2-data-fill", permissions: ["audit:read"] },
+    // --- USUARIOS ---
+    { name: "Directorio de Usuarios", path: "/users", icon: "bi-people-fill", permissions: ["users:read"] },
+    { name: "Agregar Nuevo Usuario", path: "/users", icon: "bi-person-plus-fill", permissions: ["users:create"] },
+    { name: "Editar Usuario", path: "/users", icon: "bi-person-gear", permissions: ["users:create"] },
+    { name: "Eliminar Usuario", path: "/users", icon: "bi-person-dash-fill", permissions: ["users:create"] },
+    // --- PRODUCTOS ---
+    { name: "Catálogo de Productos", path: "/products", icon: "bi-bag-fill", permissions: ["products:read"] },
+    { name: "Agregar Nuevo Producto", path: "/products", icon: "bi-bag-plus-fill", permissions: ["products:create"] },
+    { name: "Editar Producto", path: "/products", icon: "bi-pencil-square", permissions: ["products:create"] },
+    { name: "Eliminar Producto", path: "/products", icon: "bi-trash3-fill", permissions: ["products:create"] },
+    // --- PROVEEDORES ---
+    { name: "Directorio de Proveedores", path: "/suppliers", icon: "bi-shop", permissions: ["suppliers:read"] },
+    { name: "Agregar Nuevo Proveedor", path: "/suppliers", icon: "bi-building-add", permissions: ["suppliers:create"] },
+    { name: "Editar Proveedor", path: "/suppliers", icon: "bi-building-gear", permissions: ["suppliers:create"] },
+    { name: "Eliminar Proveedor", path: "/suppliers", icon: "bi-building-dash", permissions: ["suppliers:create"] },
+    // --- CLIENTES ---
+    { name: "Directorio de Clientes", path: "/clients", icon: "bi-person-vcard", permissions: ["clients:read"] },
+    { name: "Agregar Nuevo Cliente", path: "/clients", icon: "bi-person-plus-fill", permissions: ["clients:create"] },
+    { name: "Editar Cliente", path: "/clients", icon: "bi-person-lines-fill", permissions: ["clients:create"] },
+    { name: "Eliminar Cliente", path: "/clients", icon: "bi-person-x-fill", permissions: ["clients:create"] },
+    // --- INVENTARIO ---
+    { name: "Control de Inventario", path: "/inventory", icon: "bi-inboxes-fill", permissions: ["inventory:read"] },
+    { name: "Actualizar Stock (Inventario)", path: "/inventory", icon: "bi-arrow-repeat", permissions: ["inventory:create"] },
+    // --- RECEPCIONES ---
+    { name: "Historial de Recepciones", path: "/receptions", icon: "bi-truck", permissions: ["recepciones:read"] },
+    { name: "Registrar Nueva Recepción", path: "/receptions", icon: "bi-box-arrow-in-down", permissions: ["recepciones:create"] },
+    { name: "Confirmar Entrega (Recepción)", path: "/receptions", icon: "bi-check2-all", permissions: ["recepciones:update"] },
+    { name: "Eliminar Recepción", path: "/receptions", icon: "bi-trash", permissions: ["recepciones:delete"] },
+  ];
+
+  const filteredPages = searchablePages.filter((page) => {
+    if (searchQuery.trim() === "") return false;
+    const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/);
+    const matchesSearch = searchTerms.every((term) =>
+      page.name.toLowerCase().includes(term)
+    );
+    if (!matchesSearch) return false;
+    if (userRole === "ADMIN") return true;
+    const hasPermission = page.permissions.some((p) => user?.permissions?.includes(p));
+    return hasPermission;
   });
 
   useEffect(() => {
-    if (isOpen) {
-      setIsDarkMode(localStorage.getItem('erp_dark_mode') === 'true');
-      setNotificationsAlerts(localStorage.getItem('erp_notifications') !== 'false');
-      
-      setProfileForm(prev => ({
-        ...prev,
-        nombre: user?.nombre || '', 
-        email: user?.email || '',
-        currentPassword: '', newPassword: '', confirmPassword: ''
-      }));
+    if (latestLogs.length > 0) setHasUnread(true);
+  }, [latestLogs]);
 
-      setBusinessForm({
-        storeName: localStorage.getItem('erp_store_name') || 'Tejidos a Mano',
-        receiptMessage: localStorage.getItem('erp_receipt_msg') || '¡Gracias por tu compra!',
-        rfc: localStorage.getItem('erp_rfc') || '',
-        phone: localStorage.getItem('erp_phone') || '',
-        address: localStorage.getItem('erp_address') || '',
-        currency: localStorage.getItem('erp_currency') || 'MXN'
-      });
-      
-      setActiveView('main');
-      setSuccessMsg('');
-      setErrorMsg('');
-    }
-  }, [isOpen, user]);
+  // 2. Escuchamos en tiempo real si el modal de ajustes apaga las notificaciones
+  useEffect(() => {
+    const handleNotifChange = () => {
+      setShowNotifications(localStorage.getItem("erp_notifications") !== "false");
+    };
+    window.addEventListener("notificationsChanged", handleNotifChange);
+    return () => window.removeEventListener("notificationsChanged", handleNotifChange);
+  }, []);
 
-  if (!isOpen) return null;
-
-  const showSuccess = (msg) => {
-    setSuccessMsg(msg);
-    setTimeout(() => setSuccessMsg(''), 3000);
+  const getPageTitle = () => {
+    const path = location.pathname.replace("/", "");
+    if (!path) return "Dashboard";
+    return path.charAt(0).toUpperCase() + path.slice(1);
   };
 
-  const handleToggleDarkMode = () => {
-    const newValue = !isDarkMode;
-    setIsDarkMode(newValue);
-    localStorage.setItem('erp_dark_mode', newValue);
-    if (newValue) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) setIsNotifOpen(false);
+      if (profileRef.current && !profileRef.current.contains(event.target)) setIsProfileOpen(false);
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+        if (isMobile) setShowSearchBar(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isMobile]);
+
+  const handleSearchNavigate = (path) => {
+    navigate(path);
+    setSearchQuery("");
+    setShowSuggestions(false);
+    setShowSearchBar(false);
   };
 
-  const handleToggleNotifications = () => {
-    const newValue = !notificationsAlerts;
-    setNotificationsAlerts(newValue);
-    localStorage.setItem('erp_notifications', newValue);
-    window.dispatchEvent(new Event('notificationsChanged'));
-  };
-
-  const handleSaveProfile = async (e) => {
-    e.preventDefault();
-    setErrorMsg('');
-    
-    if (profileForm.newPassword) {
-      if (profileForm.newPassword !== profileForm.confirmPassword) {
-        return setErrorMsg('Las contraseñas nuevas no coinciden.');
-      }
-      if (!profileForm.currentPassword) {
-        return setErrorMsg('Debes ingresar tu contraseña actual.');
-      }
-
-      setIsLoading(true);
-      try {
-        await api.patch(`/users/${user.id || user._id}`, {
-          currentPassword: profileForm.currentPassword,
-          password: profileForm.newPassword
-        });
-
-        showSuccess('Contraseña actualizada');
-        setProfileForm(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
-      } catch (err) {
-        setErrorMsg(err.response?.data?.message || 'Error al actualizar la contraseña.');
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      showSuccess('Perfil actualizado');
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && filteredPages.length > 0) {
+      handleSearchNavigate(filteredPages[0].path);
     }
   };
 
-  const handleSaveBusiness = (e) => {
-    e.preventDefault();
-    localStorage.setItem('erp_store_name', businessForm.storeName);
-    localStorage.setItem('erp_receipt_msg', businessForm.receiptMessage);
-    localStorage.setItem('erp_rfc', businessForm.rfc);
-    localStorage.setItem('erp_phone', businessForm.phone);
-    localStorage.setItem('erp_address', businessForm.address);
-    localStorage.setItem('erp_currency', businessForm.currency);
-    showSuccess('Datos del negocio guardados');
+  const iconBtn = {
+    width: "42px",
+    height: "42px",
+    borderRadius: "14px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "rgba(255,255,255,0.12)",
+    color: "#FFFFFF",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "18px",
+    flexShrink: 0,
   };
-
-  const downloadCSV = (filename, dataArray) => {
-    if (!dataArray || dataArray.length === 0) {
-      setErrorMsg("No hay datos para exportar.");
-      return;
-    }
-    const headers = Object.keys(dataArray[0]).join(",");
-    const rows = dataArray.map(obj => Object.values(obj).map(val => `"${val}"`).join(",")).join("\n");
-    const csvContent = "data:text/csv;charset=utf-8," + headers + "\n" + rows;
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${filename}_${new Date().toLocaleDateString()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showSuccess(`Archivo ${filename}.csv descargado`);
-  };
-
-  const handleExportData = async (moduleName) => {
-    setIsLoading(true);
-    setErrorMsg('');
-    
-    let realData = [];
-
-    try {
-      if (moduleName === 'usuarios') {
-        const res = await api.get("/users");
-        realData = res.data?.items || res.data || [];
-      } 
-      else if (moduleName === 'clientes') {
-        const res = await api.get("/clients"); 
-        realData = res.data?.items || res.data || [];
-      } 
-      else if (moduleName === 'productos' || moduleName === 'inventario') {
-        realData = await productService.getAll();
-      }
-      else if (moduleName === 'proveedores') {
-        const res = await suppliersService.getSuppliers();
-        realData = res.items || res || [];
-      }
-
-      downloadCSV(moduleName, realData);
-    } catch (err) {
-      setErrorMsg('Error al exportar ' + moduleName);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleLogout = () => {
-    onClose();
-    logout();
-  };
-
-  const SettingsRow = ({ icon, title, isToggle, toggleValue, onClick, isLast }) => (
-    <div className="flex items-center justify-between p-3 sm:p-4 bg-white hover:bg-[#F9F7F2] active:bg-[#E8E4DE] transition-colors cursor-pointer" onClick={onClick}>
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-[#F4F6EE] border border-[#E8E4DE] flex items-center justify-center text-[#8B9467] flex-shrink-0">
-          <i className={`bi ${icon} text-lg`}></i>
-        </div>
-        <span className="text-[#4A453E] font-medium text-[15px]">{title}</span>
-      </div>
-      {isToggle ? (
-        <div className={`w-12 h-6 rounded-full p-1 flex items-center transition-colors duration-300 ${toggleValue ? 'bg-[#8B9467]' : 'bg-[#D1D5DB]'}`}>
-          <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${toggleValue ? 'translate-x-6' : 'translate-x-0'}`}></div>
-        </div>
-      ) : <i className="bi bi-chevron-right text-[#8C867E] text-sm font-bold"></i>}
-      {!isLast && <div className="absolute bottom-0 right-0 left-[52px] h-[1px] bg-[#E8E4DE]"></div>}
-    </div>
-  );
-
-  const TopBar = ({ title }) => (
-    <div className="flex items-center justify-center p-5 pt-6 pb-4 bg-[#F9F7F2] relative border-b border-[#E8E4DE]">
-      {activeView !== 'main' && (
-        <button type="button" onClick={() => setActiveView('main')} className="absolute left-5 flex items-center gap-1 text-[#8B9467] font-medium hover:text-[#5F6F52] bg-transparent border-none cursor-pointer">
-          <i className="bi bi-chevron-left"></i> Volver
-        </button>
-      )}
-      <h2 className="text-lg font-bold text-[#4A453E] m-0">{title}</h2>
-      {activeView === 'main' && (
-        <button type="button" onClick={onClose} className="absolute right-5 w-8 h-8 flex items-center justify-center rounded-full bg-[#E8E4DE] text-[#4A453E] hover:bg-[#D6D2C4] transition-colors border-none cursor-pointer">
-          <i className="bi bi-x-lg text-sm font-bold"></i>
-        </button>
-      )}
-    </div>
-  );
-
-  const StatusAlerts = () => (
-    <>
-      {isLoading && <div className="mx-6 mt-4 p-3 bg-blue-50 text-blue-600 rounded-xl text-sm font-semibold flex items-center justify-center"><i className="bi bi-arrow-repeat animate-spin mr-2"></i> Procesando...</div>}
-      {successMsg && <div className="mx-6 mt-4 p-3 bg-[#EEF2E7] border border-[#B8BE9C] text-[#5F6F52] rounded-xl text-sm font-semibold flex items-center justify-center gap-2"><i className="bi bi-check-circle-fill"></i> {successMsg}</div>}
-      {errorMsg && <div className="mx-6 mt-4 p-3 bg-[#FEF2F2] border border-[#FCA5A5] text-[#DC2626] rounded-xl text-sm font-semibold flex items-center justify-center gap-2 text-center"><i className="bi bi-exclamation-triangle-fill"></i> {errorMsg}</div>}
-    </>
-  );
-
-  const renderMainView = () => (
-    <>
-      <TopBar title="Ajustes" />
-      <div className="p-4 sm:p-5 overflow-y-auto flex flex-col gap-6">
-        <div>
-          <p className="text-xs font-semibold text-[#8C867E] uppercase tracking-wider mb-2 ml-2">Cuenta</p>
-          <div className="rounded-2xl overflow-hidden border border-[#E8E4DE] relative shadow-sm">
-            <SettingsRow icon="bi-person-badge" title="Mi Perfil y Seguridad" onClick={() => setActiveView('profile')} />
-            <SettingsRow icon="bi-shop-window" title="Datos del Negocio" onClick={() => setActiveView('business')} isLast />
-          </div>
-        </div>
-        <div>
-          <p className="text-xs font-semibold text-[#8C867E] uppercase tracking-wider mb-2 ml-2">Sistema y Datos</p>
-          <div className="rounded-2xl overflow-hidden border border-[#E8E4DE] relative shadow-sm">
-            <SettingsRow icon="bi-cloud-download" title="Exportar BD (CSV)" onClick={() => setActiveView('export')} />
-            <SettingsRow icon="bi-moon-stars" title="Modo Oscuro" isToggle toggleValue={isDarkMode} onClick={handleToggleDarkMode} />
-            <SettingsRow icon="bi-bell" title="Notificaciones Push" isToggle toggleValue={notificationsAlerts} onClick={handleToggleNotifications} isLast />
-          </div>
-        </div>
-        <div>
-          <div className="rounded-2xl overflow-hidden border border-[#E8E4DE] relative shadow-sm">
-            <SettingsRow icon="bi-question-circle" title="Ayuda y Soporte" onClick={() => setActiveView('support')} />
-            <SettingsRow icon="bi-box-arrow-right" title="Cerrar Sesión" onClick={handleLogout} isLast />
-          </div>
-        </div>
-      </div>
-    </>
-  );
-
-  const renderProfileView = () => (
-    <>
-      <TopBar title="Mi Perfil" />
-      <StatusAlerts />
-      <form onSubmit={handleSaveProfile} className="p-6 flex flex-col gap-5 overflow-y-auto">
-        <div className="flex justify-center relative group cursor-pointer w-max mx-auto">
-           <div className="w-20 h-20 rounded-full bg-[#8B9467] text-white flex items-center justify-center text-3xl font-bold shadow-md">
-             {(profileForm.nombre.charAt(0) || "U").toUpperCase()}
-           </div>
-        </div>
-        
-        <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-bold text-[#4A453E] border-b border-[#E8E4DE] pb-1 m-0">Seguridad de la Cuenta</h3>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-[#8C867E] ml-1">Contraseña Actual</label>
-            <input type="password" required={profileForm.newPassword !== ''} value={profileForm.currentPassword} onChange={(e) => setProfileForm({...profileForm, currentPassword: e.target.value})} className="p-3 rounded-xl border border-[#E8E4DE] bg-white outline-none focus:border-[#8B9467] text-[#4A453E]" />
-          </div>
-          <div className="flex gap-2">
-            <div className="flex flex-col gap-1 w-1/2">
-              <label className="text-xs font-semibold text-[#8C867E] ml-1">Nueva Contraseña</label>
-              <input type="password" value={profileForm.newPassword} onChange={(e) => setProfileForm({...profileForm, newPassword: e.target.value})} className="p-3 rounded-xl border border-[#E8E4DE] bg-white outline-none focus:border-[#8B9467] text-[#4A453E]" />
-            </div>
-            <div className="flex flex-col gap-1 w-1/2">
-              <label className="text-xs font-semibold text-[#8C867E] ml-1">Confirmar</label>
-              <input type="password" value={profileForm.confirmPassword} onChange={(e) => setProfileForm({...profileForm, confirmPassword: e.target.value})} className="p-3 rounded-xl border border-[#E8E4DE] bg-white outline-none focus:border-[#8B9467] text-[#4A453E]" />
-            </div>
-          </div>
-        </div>
-        <button type="submit" disabled={isLoading} className="mt-2 w-full bg-[#8B9467] text-white font-bold py-3.5 rounded-xl hover:bg-[#7A8258] disabled:bg-gray-400 transition-colors border-none cursor-pointer">
-          <i className="bi bi-shield-check"></i> Actualizar Seguridad
-        </button>
-      </form>
-    </>
-  );
-
-  const renderBusinessView = () => (
-    <>
-      <TopBar title="Datos del Negocio" />
-      <StatusAlerts />
-      <form onSubmit={handleSaveBusiness} className="p-6 flex flex-col gap-4 overflow-y-auto">
-        <div className="flex gap-3">
-          <div className="flex flex-col gap-1 w-2/3">
-            <label className="text-xs font-semibold text-[#8C867E] ml-1">Nombre</label>
-            <input type="text" required value={businessForm.storeName} onChange={(e) => setBusinessForm({...businessForm, storeName: e.target.value})} className="p-3 rounded-xl border border-[#E8E4DE] outline-none focus:border-[#8B9467]" />
-          </div>
-          <div className="flex flex-col gap-1 w-1/3">
-            <label className="text-xs font-semibold text-[#8C867E] ml-1">Moneda</label>
-            <select value={businessForm.currency} onChange={(e) => setBusinessForm({...businessForm, currency: e.target.value})} className="p-3 rounded-xl border border-[#E8E4DE] bg-white outline-none focus:border-[#8B9467]">
-              <option value="MXN">MXN</option>
-              <option value="USD">USD</option>
-            </select>
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-[#8C867E] ml-1">Teléfono o WhatsApp</label>
-          <input type="text" value={businessForm.phone} onChange={(e) => setBusinessForm({...businessForm, phone: e.target.value})} className="p-3 rounded-xl border border-[#E8E4DE] outline-none focus:border-[#8B9467]" />
-        </div>
-        <button type="submit" className="mt-2 w-full bg-[#8B9467] text-white font-bold py-3.5 rounded-xl hover:bg-[#7A8258] border-none cursor-pointer">
-          Guardar Configuración
-        </button>
-      </form>
-    </>
-  );
-
-  const renderExportView = () => (
-    <>
-      <TopBar title="Exportar Bases de Datos" />
-      <StatusAlerts />
-      <div className="p-6 flex flex-col gap-4 overflow-y-auto">
-        <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => handleExportData('usuarios')} disabled={isLoading} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-[#E8E4DE] bg-white hover:bg-[#F9F7F2] text-[#4A453E] cursor-pointer">
-            <i className="bi bi-people text-2xl text-[#8B9467]"></i><span className="font-semibold text-sm">Usuarios</span>
-          </button>
-          <button onClick={() => handleExportData('clientes')} disabled={isLoading} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-[#E8E4DE] bg-white hover:bg-[#F9F7F2] text-[#4A453E] cursor-pointer">
-            <i className="bi bi-person-vcard text-2xl text-[#8B9467]"></i><span className="font-semibold text-sm">Clientes</span>
-          </button>
-          <button onClick={() => handleExportData('productos')} disabled={isLoading} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-[#E8E4DE] bg-white hover:bg-[#F9F7F2] text-[#4A453E] cursor-pointer">
-            <i className="bi bi-bag text-2xl text-[#8B9467]"></i><span className="font-semibold text-sm">Productos</span>
-          </button>
-          <button onClick={() => handleExportData('proveedores')} disabled={isLoading} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-[#E8E4DE] bg-white hover:bg-[#F9F7F2] text-[#4A453E] cursor-pointer">
-            <i className="bi bi-truck text-2xl text-[#8B9467]"></i><span className="font-semibold text-sm">Proveedores</span>
-          </button>
-        </div>
-      </div>
-    </>
-  );
-
-  const renderSupportView = () => (
-    <>
-      <TopBar title="Ayuda y Soporte" />
-      <div className="p-6 flex flex-col gap-5 overflow-y-auto items-center text-center">
-        <div className="w-16 h-16 rounded-full bg-[#EEF2E7] text-[#8B9467] flex items-center justify-center text-3xl mb-2"><i className="bi bi-headset"></i></div>
-        <div>
-          <h3 className="text-[#4A453E] font-bold text-lg m-0 mb-1">¿Necesitas ayuda?</h3>
-        </div>
-        <div className="w-full flex flex-col gap-3 mt-2">
-          <a href="https://wa.me/524621614240" target="_blank" rel="noreferrer" className="w-full bg-[#25D366] text-white font-bold py-3.5 rounded-xl hover:bg-[#20bd5a] transition-colors border-none cursor-pointer flex items-center justify-center gap-2 no-underline">
-            <i className="bi bi-whatsapp text-lg"></i> Contactar por WhatsApp
-          </a>
-        </div>
-      </div>
-    </>
-  );
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 transition-opacity font-['Inter',sans-serif]">
-      <div className="bg-[#F9F7F2] sm:rounded-[2rem] rounded-t-[2rem] shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in flex flex-col max-h-[90vh]">
-        {activeView === 'main' && renderMainView()}
-        {activeView === 'profile' && renderProfileView()}
-        {activeView === 'business' && renderBusinessView()}
-        {activeView === 'export' && renderExportView()}
-        {activeView === 'support' && renderSupportView()}
-      </div>
+    <>
+      <header style={{
+        height: "74px",
+        padding: isMobile ? "0 16px" : "0 40px",
+        background: "linear-gradient(90deg, #8d9b70 0%, #7c8b61 50%, #6f7d55 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+        gap: "12px",
+      }}>
+
+        {/* ── LEFT ──────────────────────────────────────────────────────────── */}
+        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? "12px" : "28px", minWidth: 0 }}>
+          {isMobile && (
+            <button
+              onClick={onMenuClick}
+              style={{ ...iconBtn, border: "none", flexShrink: 0 }}
+              aria-label="Abrir menú"
+              type="button"
+            >
+              <i className="bi bi-list" style={{ fontSize: "22px" }} />
+            </button>
+          )}
+
+          <div
+            onClick={() => navigate("/dashboard")}
+            style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", minWidth: 0 }}
+          >
+            <div style={{
+              width: "40px", height: "40px", flexShrink: 0,
+              borderRadius: "14px",
+              background: "rgba(255,255,255,0.12)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}>
+              <i className="bi bi-grid-fill" style={{ color: "#fff", fontSize: "16px" }} />
+            </div>
+
+            {!isMobile && (
+              <div>
+                <div style={{ fontSize: "15px", fontWeight: "700", color: "#FFFFFF", lineHeight: 1 }}>Panel ERP</div>
+                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.75)", marginTop: "4px" }}>{getPageTitle()}</div>
+              </div>
+            )}
+            {isMobile && (
+              <div style={{ fontSize: "14px", fontWeight: "700", color: "#FFFFFF", whiteSpace: "nowrap" }}>
+                {getPageTitle()}
+              </div>
+            )}
+          </div>
+
+          {!isMobile && (
+            <div ref={searchRef} style={{ position: "relative", width: "290px" }}>
+              <div style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#8d9b70", pointerEvents: "none" }}>
+                <i className="bi bi-search" />
+              </div>
+              <input
+                type="text"
+                placeholder="Buscar módulo..."
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setShowSuggestions(true); }}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={handleKeyDown}
+                style={{ padding: "11px 16px 11px 40px", borderRadius: "14px", border: "none", backgroundColor: "rgba(255,255,255,0.95)", fontSize: "14px", width: "100%", outline: "none", color: "#1F2937", transition: "all 0.2s", boxSizing: "border-box" }}
+              />
+              {showSuggestions && searchQuery.trim() !== "" && (
+                <SearchDropdown filteredPages={filteredPages} onNavigate={handleSearchNavigate} />
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── RIGHT ─────────────────────────────────────────────────────────── */}
+        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? "8px" : "20px", flexShrink: 0 }}>
+          {isMobile && (
+            <div ref={searchRef} style={{ position: "relative" }}>
+              <button
+                type="button"
+                onClick={() => setShowSearchBar((v) => !v)}
+                style={{ ...iconBtn, border: "none" }}
+                aria-label="Buscar"
+              >
+                <i className="bi bi-search" />
+              </button>
+
+              {showSearchBar && (
+                <div style={{
+                  position: "fixed",
+                  top: "74px",
+                  left: 0,
+                  right: 0,
+                  backgroundColor: "#6f7d55",
+                  padding: "12px 16px",
+                  zIndex: 200,
+                  boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+                }}>
+                  <div style={{ position: "relative" }}>
+                    <div style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#8d9b70", pointerEvents: "none" }}>
+                      <i className="bi bi-search" />
+                    </div>
+                    <input
+                      autoFocus
+                      type="text"
+                      placeholder="Buscar módulo..."
+                      value={searchQuery}
+                      onChange={(e) => { setSearchQuery(e.target.value); setShowSuggestions(true); }}
+                      onFocus={() => setShowSuggestions(true)}
+                      onKeyDown={handleKeyDown}
+                      style={{ padding: "12px 16px 12px 40px", borderRadius: "12px", border: "none", backgroundColor: "rgba(255,255,255,0.95)", fontSize: "14px", width: "100%", outline: "none", color: "#1F2937", boxSizing: "border-box" }}
+                    />
+                  </div>
+                  {showSuggestions && searchQuery.trim() !== "" && (
+                    <SearchDropdown filteredPages={filteredPages} onNavigate={handleSearchNavigate} style={{ position: "relative", top: "8px", borderRadius: "12px" }} />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 3. Campanita envuelta en el condicional showNotifications */}
+          <Can I="audit:read">
+            {showNotifications && (
+              <div ref={notifRef} style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  onClick={() => { setIsNotifOpen(!isNotifOpen); setHasUnread(false); }}
+                  style={{ ...iconBtn, position: "relative" }}
+                >
+                  <i className="bi bi-bell-fill" />
+                  {hasUnread && (
+                    <span style={{ position: "absolute", top: "8px", right: "8px", width: "10px", height: "10px", borderRadius: "50%", background: "#F87171", border: "2px solid #8d9b70" }} />
+                  )}
+                </button>
+
+                {isNotifOpen && (
+                  <div style={{
+                    position: "absolute", top: "60px", right: "0",
+                    width: isMobile ? "calc(100vw - 32px)" : "320px",
+                    maxWidth: "320px",
+                    background: "#fff", borderRadius: "16px",
+                    boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                    padding: "15px", zIndex: 1000,
+                  }}>
+                    <h4 style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: "bold", color: "#1F2937" }}>Actividad Reciente</h4>
+                    {latestLogs.length > 0 ? latestLogs.map((l) => (
+                      <div key={l.id || l._id} style={{ padding: "10px", borderBottom: "1px solid #f3f4f6" }}>
+                        <p style={{ margin: 0, fontSize: "12px", fontWeight: "bold", color: "#8d9b70" }}>{l.action}</p>
+                        <p style={{ margin: 0, fontSize: "11px", color: "#666" }}>{l.resource} • {new Date(l.createdAt || l.fecha).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+                      </div>
+                    )) : (
+                      <p style={{ fontSize: "12px", color: "#999", textAlign: "center" }}>No hay actividad reciente</p>
+                    )}
+                    <button onClick={() => { navigate("/audit"); setIsNotifOpen(false); }} style={{ width: "100%", marginTop: "10px", fontSize: "12px", fontWeight: "bold", color: "#8d9b70", background: "none", border: "none", cursor: "pointer", padding: "8px", borderRadius: "8px" }}>
+                      Ver historial completo
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </Can>
+
+          {!isMobile && (
+            <button
+              type="button"
+              onClick={() => setIsSettingsOpen(true)}
+              style={{ ...iconBtn, border: "none" }}
+            >
+              <i className="bi bi-gear-fill" />
+            </button>
+          )}
+
+          <div ref={profileRef} style={{ position: "relative" }}>
+            <div
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              style={{
+                display: "flex", alignItems: "center",
+                gap: isMobile ? "0" : "10px",
+                padding: isMobile ? "0" : "6px 14px",
+                borderRadius: "20px",
+                background: isMobile ? "transparent" : "rgba(255,255,255,0.12)",
+                cursor: "pointer",
+                transition: "background 0.2s",
+              }}
+              onMouseOver={(e) => { if (!isMobile) e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
+              onMouseOut={(e) => { if (!isMobile) e.currentTarget.style.background = "rgba(255,255,255,0.12)"; }}
+            >
+              {!isMobile && (
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFF" }}>{user?.nombre || "Usuario"}</div>
+                  <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.8)" }}>{roleLabel}</div>
+                </div>
+              )}
+              <div style={{
+                width: "36px", height: "36px", borderRadius: "50%",
+                background: "#fff", color: "#8d9b70",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontWeight: "bold", fontSize: "14px", flexShrink: 0,
+              }}>
+                {(user?.nombre?.charAt(0) || "U").toUpperCase()}
+              </div>
+            </div>
+
+            {isProfileOpen && (
+              <div style={{
+                position: "absolute", top: "60px", right: "0",
+                width: isMobile ? "calc(100vw - 32px)" : "260px",
+                maxWidth: "260px",
+                background: "#fff", borderRadius: "16px",
+                padding: "20px",
+                boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                zIndex: 1000,
+              }}>
+                <h4 style={{ margin: "0 0 5px 0", fontSize: "15px", color: "#1F2937" }}>{user?.nombre} {user?.apellido}</h4>
+                <p style={{ fontSize: "12px", color: "#6B7280", marginBottom: "15px" }}>{user?.email}</p>
+
+                {isMobile && (
+                  <button
+                    type="button"
+                    onClick={() => { setIsSettingsOpen(true); setIsProfileOpen(false); }}
+                    style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "10px", background: "#F9F7F2", border: "1px solid #E8E4DE", borderRadius: "10px", color: "#4A453E", fontWeight: "600", cursor: "pointer", marginBottom: "10px", fontSize: "13px" }}
+                  >
+                    <i className="bi bi-gear-fill" style={{ fontSize: "16px" }} />
+                    Ajustes Rápidos
+                  </button>
+                )}
+
+                <div style={{ borderTop: "1px solid #F3F4F6", paddingTop: "12px", marginBottom: "15px" }}>
+                  <p style={{ fontSize: "10px", fontWeight: "bold", color: "#8d9b70", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                    Permisos Activos
+                  </p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                    {userRole === "ADMIN" ? (
+                      <span style={{ fontSize: "10px", background: "#EEF2E7", color: "#5F6F52", padding: "4px 8px", borderRadius: "6px", fontWeight: "bold" }}>Acceso Total (Admin)</span>
+                    ) : (
+                      <>
+                        {user?.permissions?.slice(0, 5).map((p) => (
+                          <span key={p} style={{ fontSize: "10px", background: "#F3F4F6", color: "#4B5563", padding: "4px 8px", borderRadius: "6px", fontWeight: "500" }}>
+                            {p.split(":")[0]}
+                          </span>
+                        ))}
+                        {user?.permissions?.length > 5 && (
+                          <span style={{ fontSize: "10px", padding: "4px", color: "#9CA3AF" }}>+{user.permissions.length - 5} más</span>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={logout}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", padding: "10px", background: "#FEF2F2", border: "1px solid #FEE2E2", borderRadius: "10px", color: "#DC2626", fontWeight: "bold", cursor: "pointer", transition: "all 0.2s" }}
+                  onMouseOver={(e) => e.currentTarget.style.background = "#FEE2E2"}
+                  onMouseOut={(e) => e.currentTarget.style.background = "#FEF2F2"}
+                >
+                  <i className="bi bi-box-arrow-right" style={{ fontSize: "16px" }} />
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* 4. Nuestro modal de ajustes viviendo pacíficamente afuera del header */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
+    </>
+  );
+}
+
+function SearchDropdown({ filteredPages, onNavigate, style = {} }) {
+  if (filteredPages.length === 0) return null;
+
+  return (
+    <div style={{
+      position: "absolute", top: "110%", left: 0, right: 0,
+      background: "#fff", borderRadius: "14px",
+      boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+      overflow: "hidden", zIndex: 1000,
+      ...style,
+    }}>
+      {filteredPages.map((page) => (
+        <div
+          key={page.name}
+          onClick={() => onNavigate(page.path)}
+          style={{ padding: "12px 15px", display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", color: "#4B5563" }}
+          onMouseOver={(e) => { e.currentTarget.style.background = "#F9FAFB"; e.currentTarget.style.color = "#8d9b70"; }}
+          onMouseOut={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#4B5563"; }}
+        >
+          <i className={`bi ${page.icon}`} style={{ fontSize: "16px" }} />
+          <span style={{ fontSize: "14px", fontWeight: "500" }}>{page.name}</span>
+        </div>
+      ))}
     </div>
   );
 }
