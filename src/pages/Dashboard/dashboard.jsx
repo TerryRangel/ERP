@@ -127,7 +127,7 @@ export default function Dashboard() {
   const totalEvents = allLogs.length;
 
 
-  const createEvents = recentLogs.filter(log => { const action = (log.action || "").toUpperCase()
+  const createEvents = allLogs.filter(log => { const action = (log.action || "").toUpperCase()
     return (
       action.includes("CREA") || 
       action.includes("CREATE") || 
@@ -163,7 +163,7 @@ export default function Dashboard() {
 
   const moduleCount = {};
 
-  recentLogs.forEach(log => {
+  allLogs.forEach(log => {
     const resource = log.resource || "Sistema";
     moduleCount[resource] = (moduleCount[resource] || 0) + 1;
   });
