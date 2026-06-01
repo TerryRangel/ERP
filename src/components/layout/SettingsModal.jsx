@@ -27,10 +27,6 @@ export default function SettingsModal({ isOpen, onClose }) {
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const [businessForm, setBusinessForm] = useState({ 
-    facebook: '', instagram: ''
-  });
-
   const dialogRef = useRef(null);
 
   useEffect(() => {
@@ -46,14 +42,8 @@ export default function SettingsModal({ isOpen, onClose }) {
         currentPassword: '', newPassword: '', confirmPassword: ''
       }));
 
-      // Si el usuario ya tiene una foto, se muestra
       setAvatarPreview(user?.fotoPerfil || null);
       setSelectedFile(null);
-
-      setBusinessForm({
-        facebook: localStorage.getItem('erp_facebook') || '',
-        instagram: localStorage.getItem('erp_instagram') || ''
-      });
       
       setActiveView('main');
       setSuccessMsg('');
@@ -252,7 +242,6 @@ export default function SettingsModal({ isOpen, onClose }) {
           <p className="text-xs font-semibold text-[#8C867E] uppercase tracking-wider mb-2 ml-2">Cuenta</p>
           <div className="rounded-2xl overflow-hidden border border-[#E8E4DE] relative shadow-sm">
             <SettingsRow icon="bi-person-badge" title="Mi Perfil y Seguridad" onClick={() => setActiveView('profile')} />
-            <SettingsRow icon="bi-phone" title="Redes Sociales" onClick={() => setActiveView('business')} isLast />
           </div>
         </div>
         <div>
@@ -359,41 +348,6 @@ export default function SettingsModal({ isOpen, onClose }) {
     </div>
   );
 
-  const renderBusinessView = () => (
-    <div className="flex flex-col h-full w-full">
-      <TopBar title="Redes Sociales" />
-      <StatusAlerts />
-      <form onSubmit={handleSaveBusiness} className="flex-1 min-h-0 !p-6 flex flex-col gap-5 overflow-y-auto custom-scrollbar">
-        
-        <div className="flex flex-col gap-1 shrink-0">
-          <label className="text-xs font-semibold text-[#8C867E] ml-1">Página de Facebook</label>
-          <div className="relative">
-            <i className="bi bi-facebook absolute left-4 top-1/2 -translate-y-1/2 text-[#1877F2] text-lg pointer-events-none"></i>
-            <input type="text" placeholder="https://facebook.com/tupagina" value={businessForm.facebook} onChange={(e) => setBusinessForm({...businessForm, facebook: e.target.value})} className="w-full !pl-12 !pr-4 !py-3.5 rounded-xl border border-[#E8E4DE] outline-none focus:border-[#8B9467] text-[#4A453E] bg-white transition-colors" />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1 shrink-0">
-          <label className="text-xs font-semibold text-[#8C867E] ml-1">Perfil de Instagram</label>
-          <div className="relative">
-            <i className="bi bi-instagram absolute left-4 top-1/2 -translate-y-1/2 text-[#E4405F] text-lg pointer-events-none"></i>
-            <input type="text" placeholder="https://instagram.com/tuperfil" value={businessForm.instagram} onChange={(e) => setBusinessForm({...businessForm, instagram: e.target.value})} className="w-full !pl-12 !pr-4 !py-3.5 rounded-xl border border-[#E8E4DE] outline-none focus:border-[#8B9467] text-[#4A453E] bg-white transition-colors" />
-          </div>
-        </div>
-
-        <div className="mt-auto shrink-0 pt-4">
-          <button 
-            type="submit" 
-            className="w-full !bg-[#8d9b70] !text-white font-bold py-3.5 rounded-xl transition-all duration-300 hover:!bg-[#7c8b61] hover:scale-[1.02] hover:shadow-lg active:scale-95 border-none cursor-pointer flex items-center justify-center gap-2"
-          >
-            <i className="bi bi-check2-circle text-lg"></i>
-            Guardar Redes Sociales
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-
   const renderExportView = () => (
     <div className="flex flex-col h-full w-full">
       <TopBar title="Exportar Bases de Datos" />
@@ -439,7 +393,6 @@ export default function SettingsModal({ isOpen, onClose }) {
       <div className="modal-box !bg-[#F9F7F2] sm:rounded-[2rem] !p-0 shadow-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[90vh] font-['Inter',sans-serif]">
         {activeView === 'main' && renderMainView()}
         {activeView === 'profile' && renderProfileView()}
-        {activeView === 'business' && renderBusinessView()}
         {activeView === 'export' && renderExportView()}
         {activeView === 'support' && renderSupportView()}
       </div>
