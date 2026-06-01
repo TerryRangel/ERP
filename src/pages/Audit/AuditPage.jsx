@@ -169,7 +169,7 @@ export default function AuditPage() {
               </div>
             </div>
             <p className="text-gray-500 text-lg max-w-2xl">
-              Consulta eventos, acciones y trazabilidad del ERP desde una interfaz limpia y centralizada.
+              Consulta eventos, acciones y trazabilidad del ERP.
             </p>
           </div>
 
@@ -379,7 +379,6 @@ export default function AuditPage() {
         </div>
       </div>
 
-      {/* MODAL DE DETALLES*/}
       {selectedLog && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 sm:p-6">
           

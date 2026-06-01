@@ -127,7 +127,7 @@ export default function SuppliersPage() {
               </div>
             </div>
             <p className="text-gray-500 text-lg max-w-2xl">
-              Administra las empresas asociadas, contactos y estatus operativo desde una interfaz limpia y centralizada.
+              Administra las empresas asociadas, contactos y estatus operativo.
             </p>
           </div>
 
@@ -271,7 +271,6 @@ export default function SuppliersPage() {
                   filteredSuppliers.map((s) => (
                     <tr key={s.id || s._id} className="border-b border-[#F3F5EF] hover:bg-[#FAFBF8] transition-all">
 
-                      {/* EMPRESA */}
                       <td className="pl-10 py-6">
                         <div className="flex items-center gap-4">
                           <div className="w-14 h-14 rounded-2xl bg-[#E8F0DD] text-[#5F6F52] flex items-center justify-center font-bold shadow-sm border border-[#D7E4C0]">
@@ -284,7 +283,6 @@ export default function SuppliersPage() {
                         </div>
                       </td>
 
-                      {/* CONTACTO */}
                       <td>
                         <div className="flex flex-col gap-1">
                           <span className="font-medium text-gray-700">{s.contacto || s.contactName || 'Sin contacto'}</span>
@@ -292,7 +290,6 @@ export default function SuppliersPage() {
                         </div>
                       </td>
 
-                      {/* TELÉFONO */}
                       <td>
                         <span className="font-medium text-gray-700">{s.telefono || s.phone || '-'}</span>
                       </td>
@@ -307,7 +304,6 @@ export default function SuppliersPage() {
                         </div>
                       </td>
 
-                      {/* ACCIONES - AQUÍ AÑADIMOS EL BOTÓN DE ROTAR (TOGGLE) */}
                       <Can I="suppliers:create">
                         <td className="pr-10">
                           <div className="flex items-center justify-center gap-3">
