@@ -36,7 +36,7 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
-      const baseUrl = import.meta.env.VITE_API_URL || 'https://erp-backend-crchet.onrender.com/'; 
+      const baseUrl = import.meta.env.VITE_API_URL || 'https://erp-backend-crchet.onrender.com'; 
       const response = await fetch(`${baseUrl}/api/auth/reset-password`, {
         method: 'POST',
         headers: {
