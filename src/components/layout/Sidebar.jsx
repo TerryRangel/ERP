@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Can } from "../../components/can.jsx";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import logo from "../../assets/Logotipoo.PNG"; 
+import logo from "../../assets/Logotipoo.PNG";
 
 export default function Sidebar({ onClose, isMobile }) {
   const [socials, setSocials] = useState({ facebook: '', instagram: '' });

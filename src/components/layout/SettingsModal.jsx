@@ -42,7 +42,6 @@ export default function SettingsModal({ isOpen, onClose }) {
         currentPassword: '', newPassword: '', confirmPassword: ''
       }));
 
-      // Si el usuario ya tiene una foto, se muestra
       setAvatarPreview(user?.fotoPerfil || null);
       setSelectedFile(null);
       
