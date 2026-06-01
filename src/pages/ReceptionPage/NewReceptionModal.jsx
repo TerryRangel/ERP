@@ -128,9 +128,9 @@ export default function NewReceptionModal({ isOpen, onClose, onSuccess }) {
   const inputBaseClass = "w-full !bg-[#f8f8f6] border-none rounded-2xl py-3 !pl-12 pr-4 !text-[#2D2D2D] text-sm focus:ring-2 focus:ring-[#8d9b70]/30 outline-none transition-all placeholder:text-gray-400";
 
   return (
-    <dialog ref={dialogRef} className="modal modal-bottom sm:modal-middle backdrop-blur-sm" data-theme="light" onCancel={onClose}>
+    <dialog ref={dialogRef} className="modal modal-middle backdrop-blur-sm" data-theme="light" onCancel={onClose}>
     
-      <div className="modal-box !bg-white rounded-3xl p-8 max-w-4xl shadow-2xl relative !text-[#1F2937]">
+      <div className="modal-box w-[calc(100%-32px)] sm:w-11/12 !max-w-4xl !bg-white rounded-3xl p-6 sm:p-8 shadow-2xl relative !text-[#1F2937] overflow-y-auto !max-h-[90dvh]">
         
         <button onClick={onClose} className="absolute top-6 right-6 text-gray-400 hover:text-gray-700 transition-colors" disabled={loading}>
           <i className="bi bi-x-lg text-lg"></i>

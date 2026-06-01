@@ -6,6 +6,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import logo from "../../assets/Logotipoo.PNG";
 
 export default function Sidebar({ onClose, isMobile }) {
+  const { logout } = useAuth();
   const [socials, setSocials] = useState({ facebook: '', instagram: '' });
 
   const loadSocials = () => {
@@ -38,8 +39,23 @@ export default function Sidebar({ onClose, isMobile }) {
     }}>
 
       {/* LOGO */}
-      <div style={{ padding: "32px 24px 28px", display: "flex", justifyContent: "center" }}>
-        <img src={logo} alt="logo" style={{ width: "140px", height: "auto", objectFit: "contain" }} />
+      <div style={{ padding: "32px 24px 28px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <img src={logo} alt="logo" style={{ width: "120px", height: "auto", objectFit: "contain" }} />
+        {isMobile && (
+          <button
+            onClick={onClose}
+            aria-label="Cerrar menú"
+            style={{
+              width: "36px", height: "36px", borderRadius: "10px",
+              border: "1px solid #E8E4DE", backgroundColor: "#F9F7F2",
+              color: "#4A453E", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "16px", flexShrink: 0,
+            }}
+          >
+            <i className="bi bi-x-lg" />
+          </button>
+        )}
       </div>
 
       {/* NAVEGACIÓN */}
@@ -75,6 +91,22 @@ export default function Sidebar({ onClose, isMobile }) {
             </a>
           )}
         </div>
+        {/* Logout */}
+        <button
+          onClick={logout}
+          style={{
+            width: "100%", padding: "12px", borderRadius: "8px",
+            border: "1px solid #E8E4DE", backgroundColor: "transparent",
+            color: "#8C867E", fontSize: "13px", fontWeight: "600",
+            cursor: "pointer", transition: "all 0.2s ease",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+          }}
+          onMouseOver={(e) => { e.currentTarget.style.backgroundColor = "#F9F7F2"; e.currentTarget.style.color = "#4A453E"; }}
+          onMouseOut={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "#8C867E"; }}
+        >
+          <i className="bi bi-box-arrow-left" style={{ fontSize: "16px" }} />
+          Cerrar sesión
+        </button>
       </div>
     </aside>
   );

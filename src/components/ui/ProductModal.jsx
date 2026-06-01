@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { productService } from "../../services/productService";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 export default function ProductModal({ isOpen, onClose, onProductSaved, productToEdit }) {
   const [sku, setSku] = useState("");
@@ -8,15 +9,15 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
   const [precioVenta, setPrecioVenta] = useState("");
   const [stock, setStock] = useState("");
   const [categoria, setCategoria] = useState("Flores");
-
   const [imagenArchivo, setImagenArchivo] = useState(null);
   const [imagenPreview, setImagenPreview] = useState(null);
   const [subiendo, setSubiendo] = useState(false);
 
-  // Bloquea scroll del body cuando el modal está abierto
+  const dialogRef = useRef(null);
+
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden";
+      dialogRef.current?.showModal();
       if (productToEdit) {
         setSku(productToEdit.sku || "");
         setNombre(productToEdit.nombre || "");
@@ -32,17 +33,9 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
         setImagenPreview(null); setImagenArchivo(null);
       }
     } else {
-      document.body.style.overflow = "";
+      dialogRef.current?.close();
     }
-    return () => { document.body.style.overflow = ""; };
   }, [isOpen, productToEdit]);
-
-  // Cierra con Escape
-  useEffect(() => {
-    const handleKey = (e) => { if (e.key === "Escape") onClose(); };
-    if (isOpen) document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
-  }, [isOpen, onClose]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -99,121 +92,50 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
     }
   };
 
-  if (!isOpen) return null;
-
-  // ── Estilos base para inputs ────────────────────────────────────────────────
-  const inputStyle = {
-    width: "100%",
-    backgroundColor: "#f8f8f6",
-    border: "none",
-    borderRadius: "999px",
-    padding: "12px 16px 12px 44px",
-    color: "#2D2D2D",
-    fontSize: "14px",
-    outline: "none",
-    transition: "box-shadow 0.2s",
-    boxSizing: "border-box",
-  };
-
-  const labelStyle = {
-    display: "block",
-    fontSize: "11px",
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    color: "#8d9b70",
-    fontWeight: "600",
-    marginBottom: "8px",
-    marginLeft: "4px",
-  };
-
-  const iconStyle = {
-    position: "absolute",
-    left: "14px",
-    top: "50%",
-    transform: "translateY(-50%)",
-    color: "#9CA3AF",
-    fontSize: "16px",
-    pointerEvents: "none",
-  };
+  const inputBaseClass = "w-full !bg-[#f8f8f6] border-none rounded-full py-3 !pl-12 pr-4 !text-[#2D2D2D] text-sm focus:ring-2 focus:ring-[#8d9b70]/30 outline-none transition-all placeholder:text-gray-400 disabled:opacity-60 disabled:cursor-not-allowed";
 
   return (
-    // Overlay
-    <div
-      onClick={(e) => { if (e.target === e.currentTarget && !subiendo) onClose(); }}
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.45)",
-        backdropFilter: "blur(4px)",
-        zIndex: 300,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-      }}
+    <dialog
+      ref={dialogRef}
+      className="modal modal-middle backdrop-blur-sm"
+      data-theme="light"
+      onCancel={onClose}
     >
-      {/* Caja del modal */}
-      <div
-        style={{
-          backgroundColor: "#FFFFFF",
-          borderRadius: "28px",
-          padding: "32px",
-          width: "100%",
-          maxWidth: "480px",
-          maxHeight: "90vh",
-          overflowY: "auto",
-          boxShadow: "0 25px 60px rgba(0,0,0,0.2)",
-          position: "relative",
-          boxSizing: "border-box",
-        }}
-      >
+      <div className="modal-box w-[calc(100%-32px)] sm:w-11/12 !max-w-lg !bg-white rounded-3xl p-6 sm:p-8 shadow-2xl relative !text-[#1F2937] overflow-y-auto !max-h-[90dvh]">
+
         {/* Botón cerrar */}
         <button
           onClick={onClose}
           disabled={subiendo}
-          style={{
-            position: "absolute",
-            top: "20px",
-            right: "20px",
-            width: "36px",
-            height: "36px",
-            borderRadius: "10px",
-            border: "none",
-            backgroundColor: "#F3F4F6",
-            color: "#6B7280",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "16px",
-          }}
+          className="absolute top-5 right-5 w-9 h-9 rounded-xl border border-gray-200 bg-gray-50 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all flex items-center justify-center"
         >
-          <i className="bi bi-x-lg" />
+          <i className="bi bi-x-lg text-base" />
         </button>
 
-        {/* Encabezado */}
-        <div style={{ marginBottom: "28px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#8d9b70", fontWeight: "600", marginBottom: "8px" }}>
+        {/* Header */}
+        <div className="mb-7 border-b border-gray-100 pb-5">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-widest !text-[#8d9b70] font-semibold mb-2">
             <i className="bi bi-tags-fill" />
             Gestión Comercial
           </div>
-          <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "500", color: "#1F2937", fontFamily: "'Lora', serif" }}>
+          <h3 className="text-xl font-medium !text-[#1F2937]" style={{ fontFamily: "'Lora', serif" }}>
             {productToEdit ? "Editar Producto" : "Nuevo Producto"}
           </h3>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <form onSubmit={handleSubmit} className="space-y-5">
 
-          {/* Upload de imagen */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingBottom: "4px" }}>
-            <div
-              onClick={() => !subiendo && document.getElementById("file-input-modal").click()}
-              style={{
-                position: "relative",
+          {/* Upload imagen */}
+          <div className="flex flex-col items-center pb-1">
+            <label
+              htmlFor="file-input-modal"
+              className="group"
+            style={{
                 width: "120px",
                 height: "120px",
-                borderRadius: "24px",
-                border: "2px dashed #DCE3CF",
+                opacity: subiendo ? 0.7 : 1,
+                border: "2px dashed #C8D4B0",
+                borderRadius: "20px",
                 backgroundColor: "#f8f8f6",
                 display: "flex",
                 flexDirection: "column",
@@ -222,49 +144,39 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
                 overflow: "hidden",
                 cursor: subiendo ? "default" : "pointer",
                 transition: "border-color 0.2s",
-                opacity: subiendo ? 0.7 : 1,
+                position: "relative",
               }}
             >
               {imagenPreview ? (
-                <img src={imagenPreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={imagenPreview} alt="Preview" className="w-full h-full object-cover" />
               ) : (
                 <div style={{ textAlign: "center", padding: "16px" }}>
-                  <i className="bi bi-camera-fill" style={{ fontSize: "24px", color: "#8d9b70" }} />
-                  <p style={{ fontSize: "9px", textTransform: "uppercase", fontWeight: "700", color: "#9CA3AF", margin: "4px 0 0" }}>Subir Foto</p>
+                  <i className="bi bi-camera-fill" style={{ fontSize: "28px", color: "#8d9b70" }} />
+                  <p style={{ fontSize: "9px", textTransform: "uppercase", fontWeight: "700", color: "#9CA3AF", margin: "6px 0 0", letterSpacing: "0.05em" }}>Subir Foto</p>
                 </div>
               )}
-              {/* Hover overlay */}
-              <div style={{
-                position: "absolute", inset: 0,
-                backgroundColor: "rgba(0,0,0,0.2)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                opacity: 0,
-                transition: "opacity 0.2s",
-              }}
-                onMouseOver={(e) => e.currentTarget.style.opacity = "1"}
-                onMouseOut={(e) => e.currentTarget.style.opacity = "0"}
-              >
-                <i className="bi bi-pencil-fill" style={{ color: "#fff", fontSize: "18px" }} />
+              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <i className="bi bi-pencil-fill text-white text-lg" />
               </div>
-            </div>
-            <input id="file-input-modal" type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageChange} disabled={subiendo} />
+            </label>
+            <input id="file-input-modal" type="file" accept="image/*" className="hidden" onChange={handleImageChange} disabled={subiendo} />
           </div>
 
           {/* Nombre + Categoría */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label style={labelStyle}>Nombre</label>
-              <div style={{ position: "relative" }}>
-                <i className="bi bi-tag" style={iconStyle} />
-                <input type="text" placeholder="Ej: Rosa Eterna" style={inputStyle} value={nombre} onChange={(e) => setNombre(e.target.value)} required disabled={subiendo} />
+              <label className="text-[11px] uppercase tracking-wider !text-[#8d9b70] font-semibold mb-2 ml-1 block">Nombre</label>
+              <div className="relative">
+                <i className="bi bi-tag absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none" />
+                <input type="text" placeholder="Ej: Rosa Eterna" className={inputBaseClass} value={nombre} onChange={(e) => setNombre(e.target.value)} required disabled={subiendo} />
               </div>
             </div>
             <div>
-              <label style={labelStyle}>Categoría</label>
-              <div style={{ position: "relative" }}>
-                <i className="bi bi-collection" style={iconStyle} />
+              <label className="text-[11px] uppercase tracking-wider !text-[#8d9b70] font-semibold mb-2 ml-1 block">Categoría</label>
+              <div className="relative">
+                <i className="bi bi-collection absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none" />
                 <select
-                  style={{ ...inputStyle, appearance: "none", cursor: "pointer", paddingRight: "36px" }}
+                  className={`${inputBaseClass} appearance-none cursor-pointer`}
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
                   disabled={subiendo}
@@ -272,20 +184,21 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
                   <option value="Flores">Flores</option>
                   <option value="Amigurumis">Amigurumis</option>
                 </select>
-                <i className="bi bi-chevron-down" style={{ ...iconStyle, left: "auto", right: "14px", fontSize: "11px" }} />
+                <i className="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
               </div>
             </div>
           </div>
 
           {/* SKU */}
           <div>
-            <label style={labelStyle}>SKU (Código)</label>
-            <div style={{ position: "relative" }}>
-              <i className="bi bi-upc-scan" style={iconStyle} />
+            <label className="text-[11px] uppercase tracking-wider !text-[#8d9b70] font-semibold mb-2 ml-1 block">SKU (Código)</label>
+            <div className="relative">
+              <i className="bi bi-upc-scan absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none" />
               <input
                 type="text"
                 placeholder="Ej: AMIG-01"
-                style={{ ...inputStyle, opacity: (subiendo || !!productToEdit) ? 0.6 : 1, cursor: !!productToEdit ? "not-allowed" : "text" }}
+                className={inputBaseClass}
+                style={{ opacity: (subiendo || !!productToEdit) ? 0.6 : 1, cursor: !!productToEdit ? "not-allowed" : "text" }}
                 value={sku}
                 onChange={(e) => setSku(e.target.value)}
                 required
@@ -296,18 +209,12 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
 
           {/* Descripción */}
           <div>
-            <label style={labelStyle}>Descripción</label>
-            <div style={{ position: "relative" }}>
-              <i className="bi bi-text-paragraph" style={{ ...iconStyle, top: "14px", transform: "none" }} />
+            <label className="text-[11px] uppercase tracking-wider !text-[#8d9b70] font-semibold mb-2 ml-1 block">Descripción</label>
+            <div className="relative">
+              <i className="bi bi-text-paragraph absolute left-4 top-3.5 text-gray-400 text-base pointer-events-none" />
               <textarea
                 placeholder="Detalles sobre el producto..."
-                style={{
-                  ...inputStyle,
-                  borderRadius: "16px",
-                  padding: "12px 16px 12px 44px",
-                  height: "88px",
-                  resize: "none",
-                }}
+                className="w-full !bg-[#f8f8f6] border-none rounded-3xl py-3 !pl-12 pr-4 !text-[#2D2D2D] text-sm focus:ring-2 focus:ring-[#8d9b70]/30 outline-none transition-all placeholder:text-gray-400 h-20 resize-none disabled:opacity-60"
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
                 disabled={subiendo}
@@ -316,28 +223,25 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
           </div>
 
           {/* Precio + Stock */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label style={labelStyle}>Precio Venta</label>
-              <div style={{ position: "relative" }}>
-                <i className="bi bi-currency-dollar" style={iconStyle} />
-                <input type="number" step="0.01" placeholder="0.00" style={inputStyle} value={precioVenta} onChange={(e) => setPrecioVenta(e.target.value)} required disabled={subiendo} />
+              <label className="text-[11px] uppercase tracking-wider !text-[#8d9b70] font-semibold mb-2 ml-1 block">Precio Venta</label>
+              <div className="relative">
+                <i className="bi bi-currency-dollar absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none" />
+                <input type="number" step="0.01" placeholder="0.00" className={inputBaseClass} value={precioVenta} onChange={(e) => setPrecioVenta(e.target.value)} required disabled={subiendo} />
               </div>
             </div>
             <div>
-              <label style={labelStyle}>
+              <label className="text-[11px] uppercase tracking-wider !text-[#8d9b70] font-semibold mb-2 ml-1 block">
                 {productToEdit ? "Stock Actual" : "Stock Inicial"}
               </label>
-              <div style={{ position: "relative" }}>
-                <i className="bi bi-boxes" style={iconStyle} />
+              <div className="relative">
+                <i className="bi bi-boxes absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none" />
                 <input
                   type="number"
                   placeholder="0"
-                  style={{
-                    ...inputStyle,
-                    opacity: (subiendo || !!productToEdit) ? 0.6 : 1,
-                    cursor: !!productToEdit ? "not-allowed" : "text",
-                  }}
+                  className={inputBaseClass}
+                  style={{ opacity: (subiendo || !!productToEdit) ? 0.6 : 1, cursor: !!productToEdit ? "not-allowed" : "text" }}
                   value={stock}
                   onChange={(e) => setStock(e.target.value)}
                   required
@@ -346,73 +250,40 @@ export default function ProductModal({ isOpen, onClose, onProductSaved, productT
                 />
               </div>
               {productToEdit && (
-                <p style={{ fontSize: "10px", color: "#9CA3AF", marginTop: "4px", marginLeft: "4px" }}>
-                  Modificar en Inventario
-                </p>
+                <p className="text-[10px] text-gray-400 mt-1 ml-1">Modificar en Inventario</p>
               )}
             </div>
           </div>
 
           {/* Botones */}
-          <div style={{ display: "flex", justifyContent: "center", gap: "24px", paddingTop: "8px", borderTop: "1px solid #F3F4F6", marginTop: "4px" }}>
+          <div className="modal-action mt-6 flex justify-end gap-4 border-t border-gray-100 pt-5">
             <button
               type="button"
               onClick={onClose}
               disabled={subiendo}
-              style={{
-                display: "flex", alignItems: "center", gap: "6px",
-                padding: "10px 20px",
-                borderRadius: "999px",
-                border: "none",
-                backgroundColor: "transparent",
-                color: "#6B7280",
-                fontWeight: "500",
-                fontSize: "14px",
-                cursor: "pointer",
-                transition: "background 0.2s",
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#F3F4F6"}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+              className="px-6 py-2.5 rounded-full !text-gray-500 font-medium hover:!bg-gray-100 transition-all flex items-center gap-2"
             >
-              <i className="bi bi-x-circle" style={{ fontSize: "16px" }} />
-              Cancelar
+              <i className="bi bi-x-circle text-base" /> Cancelar
             </button>
             <button
               type="submit"
               disabled={subiendo}
-              style={{
-                display: "flex", alignItems: "center", gap: "6px",
-                padding: "10px 20px",
-                borderRadius: "999px",
-                border: "none",
-                backgroundColor: subiendo ? "#F3F4F6" : "#EEF1E7",
-                color: subiendo ? "#9CA3AF" : "#1F2937",
-                fontWeight: "600",
-                fontSize: "14px",
-                cursor: subiendo ? "not-allowed" : "pointer",
-                transition: "all 0.2s",
-              }}
-              onMouseOver={(e) => { if (!subiendo) e.currentTarget.style.backgroundColor = "#DDE6CC"; }}
-              onMouseOut={(e) => { if (!subiendo) e.currentTarget.style.backgroundColor = "#EEF1E7"; }}
+              className="flex items-center gap-2 px-7 py-2.5 rounded-full bg-[#EEF1E7] !text-[#1F2937] font-semibold hover:bg-[#DDE6CC] transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {subiendo ? (
-                <>
-                  <span style={{ width: "14px", height: "14px", border: "2px solid #9CA3AF", borderTopColor: "transparent", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} />
-                  Guardando...
-                </>
+                <><span className="loading loading-spinner loading-xs"></span> Guardando...</>
               ) : (
-                <>
-                  <i className="bi bi-check-circle-fill" style={{ fontSize: "16px" }} />
-                  {productToEdit ? "Guardar Cambios" : "Guardar"}
-                </>
+                <><i className="bi bi-check-circle-fill text-base" /> {productToEdit ? "Guardar Cambios" : "Guardar"}</>
               )}
             </button>
           </div>
+
         </form>
       </div>
 
-      {/* Spinner keyframe */}
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
+      <form method="dialog" className="modal-backdrop">
+        <button onClick={onClose}>close</button>
+      </form>
+    </dialog>
   );
 }
