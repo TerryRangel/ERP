@@ -359,8 +359,17 @@ export default function Navbar({ onMenuClick, isMobile }) {
                 background: "#fff", color: "#8d9b70",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontWeight: "bold", fontSize: "14px", flexShrink: 0,
+                overflow: "hidden", // Importante para que la imagen no se salga del círculo
               }}>
-                {(user?.nombre?.charAt(0) || "U").toUpperCase()}
+                {user?.fotoPerfil ? (
+                  <img 
+                    src={user.fotoPerfil} 
+                    alt="Perfil" 
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                  />
+                ) : (
+                  (user?.nombre?.charAt(0) || "U").toUpperCase()
+                )}
               </div>
             </div>
 
