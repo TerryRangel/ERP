@@ -3,7 +3,7 @@ import { getAuditLogs } from '../../services/auditService';
 import { useAudit } from '../../context/AuditContext';
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-// ─── FUNCIONES AUXILIARES (Movidas afuera para poder compartirlas) ──────────
+// ─── FUNCIONES AUXILIARES ──────────
 const formatDate = (dateString) => {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleDateString('es-MX', {
@@ -268,7 +268,6 @@ export default function AuditPage() {
 }
 
 
-// ─── SUBCOMPONENTE DEL MODAL (Asegura el z-index superior con <dialog>) ────
 function AuditDetailsModal({ log, onClose }) {
   const dialogRef = useRef(null);
 
