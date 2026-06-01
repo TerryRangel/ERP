@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { clientService } from '../../services/clientService';
@@ -15,22 +15,80 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
 
+  // ─── ESTADO PARA RECORDAR USUARIO ───────────────────────────────────────
+  const [rememberMe, setRememberMe] = useState(false);
+
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  // ─── ESTADOS PARA RECUPERAR CONTRASEÑA ────────────────────────────────
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState("");
+  const [resetError, setResetError] = useState("");
+
+  // ─── CARGAR USUARIO GUARDADO AL INICIAR ───────────────────────────────
+  useEffect(() => {
+    const savedUser = localStorage.getItem("rememberedUser");
+    if (savedUser) {
+      setUsuario(savedUser);
+      setRememberMe(true); // Dejamos la casilla marcada
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
     setLoading(true);
 
     try {
       await login(usuario, password);
+
+      // NUEVO: Guardar o borrar el usuario según la casilla
+      if (rememberMe) {
+        localStorage.setItem("rememberedUser", usuario);
+      } else {
+        localStorage.removeItem("rememberedUser");
+      }
+
       navigate("/dashboard");
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ─── FUNCIÓN PARA ENVIAR EL CORREO DE RECUPERACIÓN ───────────────────
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setResetError("");
+    setResetMessage("");
+    setResetLoading(true);
+
+    try {
+      // Ajusta la URL a la de tu backend (si usas axios o api, puedes reemplazar este fetch)
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'; 
+      const response = await fetch(`${baseUrl}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: resetEmail })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al procesar la solicitud');
+      }
+
+      setResetMessage(data.message); // "Si el correo existe, hemos enviado las instrucciones..."
+    } catch (err) {
+      setResetError(err.message);
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -174,7 +232,6 @@ export default function Login() {
                 flex
                 items-center
                 justify-center
-               
                 overflow-hidden
               "
             >
@@ -184,8 +241,6 @@ export default function Login() {
                 className="w-full h-full object-cover"
               />
             </div>
-
-            
           </div>
 
           {/* TITLE */}
@@ -331,6 +386,8 @@ export default function Login() {
               <label className="flex items-center gap-3 text-[#6E6257]">
                 <input
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="
                     w-5
                     h-5
@@ -339,21 +396,25 @@ export default function Login() {
                     text-[#9EA384]
                   "
                 />
-
                 Recordarme
               </label>
 
-              <a
-                href="/forgot-password"
+              {/* ENLACE RECUPERAR CONTRASEÑA */}
+              <button
+                type="button"
+                onClick={() => setForgotPasswordOpen(true)}
                 className="
                   text-[#7E8565]
                   underline
                   hover:text-[#62684E]
                   transition
+                  bg-transparent
+                  border-none
+                  cursor-pointer
                 "
               >
                 ¿Olvidaste tu contraseña?
-              </a>
+              </button>
             </div>
 
             {/* BUTTON */}
@@ -653,6 +714,88 @@ export default function Login() {
           }
         }}
       />
+
+      {/* ─── MODAL DE RECUPERAR CONTRASEÑA ───────────────────────────── */}
+      {forgotPasswordOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-[#F6F1E8] w-full max-w-md rounded-[32px] p-8 shadow-2xl relative border border-[#D9D1C7] animate-fade-in">
+            {/* Botón Cerrar */}
+            <button
+              onClick={() => {
+                setForgotPasswordOpen(false);
+                setResetMessage("");
+                setResetError("");
+                setResetEmail("");
+              }}
+              className="absolute top-6 right-6 text-[#A69A8E] hover:text-[#4B3429] transition-colors bg-transparent border-none cursor-pointer"
+            >
+              <i className="bi bi-x-lg text-xl"></i>
+            </button>
+
+            {/* Cabecera del Modal */}
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 rounded-full bg-[#DCE3CF] flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <i className="bi bi-envelope-paper text-2xl text-[#62684E]"></i>
+              </div>
+              <h2 className="text-3xl font-serif text-[#4B3429]">Recuperar Acceso</h2>
+              <p className="text-[#7B6A58] mt-2 text-sm px-2">
+                Ingresa tu correo electrónico registrado y te enviaremos las instrucciones paso a paso.
+              </p>
+            </div>
+
+            {/* Mensajes de Éxito o Error */}
+            {resetMessage && (
+              <div className="mb-5 bg-[#EEF1E7] border border-[#B8BE9C] text-[#62684E] px-4 py-3 rounded-2xl text-sm text-center">
+                <i className="bi bi-check-circle mr-2"></i>{resetMessage}
+              </div>
+            )}
+
+            {resetError && (
+              <div className="mb-5 bg-red-50 border border-red-200 text-red-500 px-4 py-3 rounded-2xl text-sm text-center">
+                <i className="bi bi-exclamation-circle mr-2"></i>{resetError}
+              </div>
+            )}
+
+            {/* Formulario */}
+            <form onSubmit={handleForgotPassword} className="space-y-5">
+              <div className="flex items-center overflow-hidden rounded-2xl border border-[#D9D1C7] bg-white shadow-sm">
+                <div className="w-16 h-[60px] bg-[#9EA384] flex items-center justify-center">
+                  <i className="bi bi-envelope text-white text-xl"></i>
+                </div>
+                <input
+                  type="email"
+                  placeholder="ejemplo@correo.com"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  required
+                  className="flex-1 h-[60px] pl-4 text-md outline-none bg-transparent text-[#4B3429] placeholder:text-[#A69A8E]"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={resetLoading}
+                className="
+                  w-full h-[60px] rounded-2xl bg-[#4B3429] hover:bg-[#3A2820] 
+                  text-white text-lg font-semibold shadow-lg transition-all 
+                  flex items-center justify-center gap-3 hover:scale-[1.02]
+                "
+              >
+                {resetLoading ? (
+                  <>
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    Enviar Enlace <i className="bi bi-send"></i>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

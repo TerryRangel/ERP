@@ -11,6 +11,7 @@ import ClientsPage from '../pages/Clients/ClientsPage';
 import InventoryPage from '../pages/Inventory/InventoryPage';
 import ReceptionsPage from '../pages/ReceptionPage/ReceptionPage.jsx';
 import Unauthorized from '../pages/Auth/Unauthorized.jsx';
+import ResetPassword from '../pages/Auth/ResetPassword.jsx';
 
 export default function AppRoutes() {
   return (
@@ -18,6 +19,7 @@ export default function AppRoutes() {
       <Routes>
         {/* Ruta pública */}
         <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         
         {/* Rutas protegidas */}
         <Route element={<ProtectedRoute />}>
