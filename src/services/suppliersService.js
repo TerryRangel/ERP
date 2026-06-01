@@ -34,6 +34,17 @@ export const suppliersService = {
     }
   },
 
+  // NUEVO: Cambiar el estado activo/inactivo (Toggle)
+  toggleSupplierActive: async (id, activo) => {
+    try {
+      const response = await api.patch(`/suppliers/${id}/toggle-active`, { activo });
+      return response.data;
+    } catch (error) {
+      console.error("Error al cambiar estado del proveedor:", error);
+      throw new Error("No se pudo cambiar el estado");
+    }
+  },
+
   // Eliminar un proveedor
   deleteSupplier: async (id) => {
     try {

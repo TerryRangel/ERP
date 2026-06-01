@@ -44,6 +44,18 @@ export default function SuppliersPage() {
     }
   };
 
+  // NUEVA FUNCIÓN: Toggle Rápido de Estado
+  const handleToggleActive = async (supplier) => {
+    try {
+      const id = supplier.id || supplier._id;
+      const newStatus = supplier.activo === false ? true : false;
+      await suppliersService.toggleSupplierActive(id, newStatus);
+      fetchSuppliers(); // Recargamos para ver el cambio
+    } catch (error) {
+      alert('Error al cambiar el estado: ' + error.message);
+    }
+  };
+
   const handleDelete = async () => {
     if (!supplierToDelete) return;
     try {
@@ -295,21 +307,32 @@ export default function SuppliersPage() {
                         </div>
                       </td>
 
-                      {/* ACCIONES */}
+                      {/* ACCIONES - AQUÍ AÑADIMOS EL BOTÓN DE ROTAR (TOGGLE) */}
                       <Can I="suppliers:create">
                         <td className="pr-10">
                           <div className="flex items-center justify-center gap-3">
                             <button
                               onClick={() => openEditModal(s)}
-                              className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all"
+                              title="Editar proveedor"
+                              className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center"
                             >
-                              <i className="bi bi-pencil-square"></i>
+                              <i className="bi bi-pencil-square text-lg"></i>
                             </button>
+                            
+                            <button
+                              onClick={() => handleToggleActive(s)}
+                              title={s.activo !== false ? "Desactivar proveedor" : "Activar proveedor"}
+                              className="w-11 h-11 rounded-2xl bg-gray-50 text-gray-600 hover:bg-gray-600 hover:text-white transition-all flex items-center justify-center"
+                            >
+                              <i className="bi bi-arrow-repeat text-xl"></i>
+                            </button>
+
                             <button
                               onClick={() => setSupplierToDelete(s)}
-                              className="w-11 h-11 rounded-2xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all"
+                              title="Eliminar proveedor"
+                              className="w-11 h-11 rounded-2xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all flex items-center justify-center"
                             >
-                              <i className="bi bi-trash3-fill"></i>
+                              <i className="bi bi-trash3-fill text-lg"></i>
                             </button>
                           </div>
                         </td>
