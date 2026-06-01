@@ -17,7 +17,7 @@ export default function ResetPassword() {
   // Si alguien entra a la página sin un token en la URL, le avisamos.
   useEffect(() => {
     if (!token) {
-      setError("El enlace es inválido o no contiene un código de seguridad.");
+      setError("El enlace es inválido o no contiene un código de seguridad. que mal");
     }
   }, [token]);
 
