@@ -151,31 +151,14 @@ export default function Login() {
         ></div>
 
         {/* LADO IMAGEN */}
-        <div className="pr-10">
-          <span
-            className="
-              text-6xl
-              font-serif
-              leading-[0.95]
-              text-white
-              drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)]
-            "
-          >
-            Cada tejido
-          </span>
-
-          <span
-            className="
-              block
-              mt-3
-              text-4xl
-              italic
-              text-[#F2EBDD]
-            "
-          >
-            lleva amor
-          </span>
-        </div>
+        <div className="text-center px-10">
+            <span className="text-6xl font-serif leading-[0.95] text-white drop-shadow-md">
+              Cada tejido
+            </span>
+            <span className="block mt-3 text-4xl italic text-[#F2EBDD]">
+              lleva amor
+            </span>
+          </div>
       </div>
 
       {/* LEFT PANEL */}
@@ -452,42 +435,6 @@ export default function Login() {
                 </>
               )}
             </button>
-
-            {/* DIVIDER */}
-            <div className="flex items-center gap-5 py-4">
-              <div className="flex-1 h-px bg-[#D8D0C6]"></div>
-
-              <span className="text-[#8A7B6C]">
-                o continúa con
-              </span>
-
-              <div className="flex-1 h-px bg-[#D8D0C6]"></div>
-            </div>
-
-            {/* GOOGLE */}
-            <button
-              type="button"
-              className="
-                w-full
-                h-[72px]
-                rounded-2xl
-                bg-white
-                border
-                border-[#D9D1C7]
-                shadow-sm
-                flex
-                items-center
-                justify-center
-                gap-4
-                text-xl
-                text-[#4B3429]
-                hover:bg-[#FAF8F4]
-                transition
-              "
-            >
-              <i className="bi bi-google text-2xl"></i>
-              Continuar con Google
-            </button>
           </form>
 
           {/* FOOTER */}
@@ -528,76 +475,6 @@ export default function Login() {
             to-[#000000]/55
           "
         ></div>
-
-        {/* REGISTER CARD */}
-        <div
-          className="
-            absolute
-            top-10
-            right-10
-            w-[320px]
-            bg-white/12
-            backdrop-blur-2xl
-            rounded-[32px]
-            p-8
-            border
-            border-white/20
-            shadow-[0_8px_40px_rgba(0,0,0,0.25)]
-          "
-        >
-          {/* ICON */}
-          <div
-            className="
-              w-16
-              h-16
-              rounded-full
-              bg-white/15
-              flex
-              items-center
-              justify-center
-              mx-auto
-              mb-6
-              border
-              border-white/10
-            "
-          >
-            <i className="bi bi-heart-fill text-2xl text-[#F5EBDD]"></i>
-          </div>
-
-          {/* TEXT */}
-          <div className="text-center">
-            <p className="text-white text-2xl font-serif">
-              ¿Aún no tienes cuenta?
-            </p>
-
-            <p className="text-[#ECE6DB] text-sm mt-3 leading-relaxed">
-              Únete y descubre tejidos hechos
-              con dedicación artesanal.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => setRegisterOpen(true)}
-              className="
-                mt-6
-                w-full
-                h-[56px]
-                rounded-2xl
-                bg-[#F5EBDD]
-                text-[#4B3429]
-                font-semibold
-                text-lg
-                hover:scale-[1.02]
-                hover:bg-white
-                transition-all
-                duration-300
-                shadow-lg
-              "
-            >
-              Crear cuenta
-            </button>
-          </div>
-        </div>
 
         {/* BOTTOM CARD */}
         <div
