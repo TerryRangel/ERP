@@ -68,8 +68,8 @@ export default function Login() {
     setResetLoading(true);
 
     try {
-      // Ajusta la URL a la de tu backend (si usas axios o api, puedes reemplazar este fetch)
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'; 
+
+      const baseUrl = import.meta.env.VITE_API_URL || 'https://erp-backend-crchet.onrender.com'; 
       const response = await fetch(`${baseUrl}/api/auth/forgot-password`, {
         method: 'POST',
         headers: {
