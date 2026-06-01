@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext'; 
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import api from '../../services/api';
@@ -6,68 +6,66 @@ import { productService } from '../../services/productService';
 import { suppliersService } from '../../services/suppliersService';
 
 export default function SettingsModal({ isOpen, onClose }) {
-  const { user, logout } = useAuth(); 
+  const { user } = useAuth(); 
   
   const [activeView, setActiveView] = useState('main'); 
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [notificationsAlerts, setNotificationsAlerts] = useState(true);
 
   const [profileForm, setProfileForm] = useState({ 
     nombre: '', 
     email: '',
+    usuario: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
+  
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const [businessForm, setBusinessForm] = useState({ 
-    storeName: '', receiptMessage: '', rfc: '', phone: '', address: '', currency: 'MXN'
+    facebook: '', instagram: ''
   });
+
+  const dialogRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
-      setIsDarkMode(localStorage.getItem('erp_dark_mode') === 'true');
+      dialogRef.current?.showModal();
       setNotificationsAlerts(localStorage.getItem('erp_notifications') !== 'false');
       
       setProfileForm(prev => ({
         ...prev,
         nombre: user?.nombre || '', 
         email: user?.email || '',
+        usuario: user?.usuario || '',
         currentPassword: '', newPassword: '', confirmPassword: ''
       }));
 
+      // Si el usuario ya tiene una foto, se muestra
+      setAvatarPreview(user?.fotoPerfil || null);
+      setSelectedFile(null);
+
       setBusinessForm({
-        storeName: localStorage.getItem('erp_store_name') || 'Tejidos a Mano',
-        receiptMessage: localStorage.getItem('erp_receipt_msg') || '¡Gracias por tu compra!',
-        rfc: localStorage.getItem('erp_rfc') || '',
-        phone: localStorage.getItem('erp_phone') || '',
-        address: localStorage.getItem('erp_address') || '',
-        currency: localStorage.getItem('erp_currency') || 'MXN'
+        facebook: localStorage.getItem('erp_facebook') || '',
+        instagram: localStorage.getItem('erp_instagram') || ''
       });
       
       setActiveView('main');
       setSuccessMsg('');
       setErrorMsg('');
+    } else {
+      dialogRef.current?.close();
     }
   }, [isOpen, user]);
-
-  if (!isOpen) return null;
 
   const showSuccess = (msg) => {
     setSuccessMsg(msg);
     setTimeout(() => setSuccessMsg(''), 3000);
-  };
-
-  const handleToggleDarkMode = () => {
-    const newValue = !isDarkMode;
-    setIsDarkMode(newValue);
-    localStorage.setItem('erp_dark_mode', newValue);
-    if (newValue) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
   };
 
   const handleToggleNotifications = () => {
@@ -77,46 +75,84 @@ export default function SettingsModal({ isOpen, onClose }) {
     window.dispatchEvent(new Event('notificationsChanged'));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setAvatarPreview(URL.createObjectURL(file)); // Crea vista previa temporal
+    }
+  };
+
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setErrorMsg('');
+    setIsLoading(true);
     
-    if (profileForm.newPassword) {
-      if (profileForm.newPassword !== profileForm.confirmPassword) {
-        return setErrorMsg('Las contraseñas nuevas no coinciden.');
-      }
-      if (!profileForm.currentPassword) {
-        return setErrorMsg('Debes ingresar tu contraseña actual.');
+    try {
+      if (profileForm.newPassword) {
+        if (profileForm.newPassword !== profileForm.confirmPassword) {
+          setIsLoading(false);
+          return setErrorMsg('Las contraseñas nuevas no coinciden.');
+        }
+        if (!profileForm.currentPassword) {
+          setIsLoading(false);
+          return setErrorMsg('Debes ingresar tu contraseña actual.');
+        }
       }
 
-      setIsLoading(true);
-      try {
-        await api.patch(`/users/${user.id || user._id}`, {
-          currentPassword: profileForm.currentPassword,
-          password: profileForm.newPassword
-        });
+      const payload = {
+        nombre: profileForm.nombre,
+        email: profileForm.email,
+        usuario: profileForm.usuario
+      };
 
-        showSuccess('Contraseña actualizada');
-        setProfileForm(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
-      } catch (err) {
-        setErrorMsg(err.response?.data?.message || 'Error al actualizar la contraseña.');
-      } finally {
-        setIsLoading(false);
+      if (profileForm.newPassword) {
+        payload.currentPassword = profileForm.currentPassword;
+        payload.password = profileForm.newPassword;
       }
-    } else {
-      showSuccess('Perfil actualizado');
+
+      if (selectedFile) {
+        const formDataCloudinary = new FormData();
+        formDataCloudinary.append("file", selectedFile);
+        
+        formDataCloudinary.append("upload_preset", "Foto_perfil"); 
+
+        const cloudinaryRes = await fetch(
+          "https://api.cloudinary.com/v1_1/dsbwrorlk/image/upload", 
+          {
+            method: "POST",
+            body: formDataCloudinary,
+          }
+        );
+
+        const cloudinaryData = await cloudinaryRes.json();
+
+        if (cloudinaryData.secure_url) {
+          payload.fotoPerfil = cloudinaryData.secure_url;
+        } else {
+          throw new Error("Hubo un problema al subir la imagen a Cloudinary.");
+        }
+      }
+
+      await api.patch(`/users/${user.id || user._id}`, payload);
+
+      showSuccess('Perfil actualizado correctamente');
+      setProfileForm(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
+      setSelectedFile(null);
+      
+    } catch (err) {
+      console.error(err);
+      setErrorMsg(err.response?.data?.message || err.message || 'Error al actualizar el perfil.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSaveBusiness = (e) => {
     e.preventDefault();
-    localStorage.setItem('erp_store_name', businessForm.storeName);
-    localStorage.setItem('erp_receipt_msg', businessForm.receiptMessage);
-    localStorage.setItem('erp_rfc', businessForm.rfc);
-    localStorage.setItem('erp_phone', businessForm.phone);
-    localStorage.setItem('erp_address', businessForm.address);
-    localStorage.setItem('erp_currency', businessForm.currency);
-    showSuccess('Datos del negocio guardados');
+    localStorage.setItem('erp_facebook', businessForm.facebook);
+    localStorage.setItem('erp_instagram', businessForm.instagram);
+    showSuccess('Redes sociales guardadas');
   };
 
   const downloadCSV = (filename, dataArray) => {
@@ -140,7 +176,6 @@ export default function SettingsModal({ isOpen, onClose }) {
   const handleExportData = async (moduleName) => {
     setIsLoading(true);
     setErrorMsg('');
-    
     let realData = [];
 
     try {
@@ -168,11 +203,6 @@ export default function SettingsModal({ isOpen, onClose }) {
     }
   };
 
-  const handleLogout = () => {
-    onClose();
-    logout();
-  };
-
   const SettingsRow = ({ icon, title, isToggle, toggleValue, onClick, isLast }) => (
     <div className="flex items-center justify-between p-3 sm:p-4 bg-white hover:bg-[#F9F7F2] active:bg-[#E8E4DE] transition-colors cursor-pointer" onClick={onClick}>
       <div className="flex items-center gap-3">
@@ -191,7 +221,7 @@ export default function SettingsModal({ isOpen, onClose }) {
   );
 
   const TopBar = ({ title }) => (
-    <div className="flex items-center justify-center p-5 pt-6 pb-4 bg-[#F9F7F2] relative border-b border-[#E8E4DE]">
+    <div className="shrink-0 flex items-center justify-center p-5 pt-6 pb-4 bg-[#F9F7F2] relative border-b border-[#E8E4DE]">
       {activeView !== 'main' && (
         <button type="button" onClick={() => setActiveView('main')} className="absolute left-5 flex items-center gap-1 text-[#8B9467] font-medium hover:text-[#5F6F52] bg-transparent border-none cursor-pointer">
           <i className="bi bi-chevron-left"></i> Volver
@@ -207,155 +237,216 @@ export default function SettingsModal({ isOpen, onClose }) {
   );
 
   const StatusAlerts = () => (
-    <>
-      {isLoading && <div className="mx-6 mt-4 p-3 bg-blue-50 text-blue-600 rounded-xl text-sm font-semibold flex items-center justify-center"><i className="bi bi-arrow-repeat animate-spin mr-2"></i> Procesando...</div>}
-      {successMsg && <div className="mx-6 mt-4 p-3 bg-[#EEF2E7] border border-[#B8BE9C] text-[#5F6F52] rounded-xl text-sm font-semibold flex items-center justify-center gap-2"><i className="bi bi-check-circle-fill"></i> {successMsg}</div>}
-      {errorMsg && <div className="mx-6 mt-4 p-3 bg-[#FEF2F2] border border-[#FCA5A5] text-[#DC2626] rounded-xl text-sm font-semibold flex items-center justify-center gap-2 text-center"><i className="bi bi-exclamation-triangle-fill"></i> {errorMsg}</div>}
-    </>
+    <div className="shrink-0 px-6 pt-4">
+      {isLoading && <div className="p-3 bg-blue-50 text-blue-600 rounded-xl text-sm font-semibold flex items-center justify-center"><i className="bi bi-arrow-repeat animate-spin mr-2"></i> Procesando...</div>}
+      {successMsg && <div className="p-3 bg-[#EEF2E7] border border-[#B8BE9C] text-[#5F6F52] rounded-xl text-sm font-semibold flex items-center justify-center gap-2"><i className="bi bi-check-circle-fill"></i> {successMsg}</div>}
+      {errorMsg && <div className="p-3 bg-[#FEF2F2] border border-[#FCA5A5] text-[#DC2626] rounded-xl text-sm font-semibold flex items-center justify-center gap-2 text-center"><i className="bi bi-exclamation-triangle-fill"></i> {errorMsg}</div>}
+    </div>
   );
 
   const renderMainView = () => (
-    <>
+    <div className="flex flex-col h-full w-full">
       <TopBar title="Ajustes" />
-      <div className="p-4 sm:p-5 overflow-y-auto flex flex-col gap-6">
+      <div className="flex-1 min-h-0 p-4 sm:p-5 overflow-y-auto custom-scrollbar flex flex-col gap-6">
         <div>
           <p className="text-xs font-semibold text-[#8C867E] uppercase tracking-wider mb-2 ml-2">Cuenta</p>
           <div className="rounded-2xl overflow-hidden border border-[#E8E4DE] relative shadow-sm">
             <SettingsRow icon="bi-person-badge" title="Mi Perfil y Seguridad" onClick={() => setActiveView('profile')} />
-            <SettingsRow icon="bi-shop-window" title="Datos del Negocio" onClick={() => setActiveView('business')} isLast />
+            <SettingsRow icon="bi-phone" title="Redes Sociales" onClick={() => setActiveView('business')} isLast />
           </div>
         </div>
         <div>
           <p className="text-xs font-semibold text-[#8C867E] uppercase tracking-wider mb-2 ml-2">Sistema y Datos</p>
           <div className="rounded-2xl overflow-hidden border border-[#E8E4DE] relative shadow-sm">
             <SettingsRow icon="bi-cloud-download" title="Exportar BD (CSV)" onClick={() => setActiveView('export')} />
-            <SettingsRow icon="bi-moon-stars" title="Modo Oscuro" isToggle toggleValue={isDarkMode} onClick={handleToggleDarkMode} />
             <SettingsRow icon="bi-bell" title="Notificaciones Push" isToggle toggleValue={notificationsAlerts} onClick={handleToggleNotifications} isLast />
           </div>
         </div>
         <div>
           <div className="rounded-2xl overflow-hidden border border-[#E8E4DE] relative shadow-sm">
-            <SettingsRow icon="bi-question-circle" title="Ayuda y Soporte" onClick={() => setActiveView('support')} />
-            <SettingsRow icon="bi-box-arrow-right" title="Cerrar Sesión" onClick={handleLogout} isLast />
+            <SettingsRow icon="bi-question-circle" title="Ayuda y Soporte" onClick={() => setActiveView('support')} isLast />
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 
   const renderProfileView = () => (
-    <>
+    <div className="flex flex-col h-full w-full">
       <TopBar title="Mi Perfil" />
       <StatusAlerts />
-      <form onSubmit={handleSaveProfile} className="p-6 flex flex-col gap-5 overflow-y-auto">
-        <div className="flex justify-center relative group cursor-pointer w-max mx-auto">
-           <div className="w-20 h-20 rounded-full bg-[#8B9467] text-white flex items-center justify-center text-3xl font-bold shadow-md">
-             {(profileForm.nombre.charAt(0) || "U").toUpperCase()}
-           </div>
+      <form onSubmit={handleSaveProfile} className="flex-1 min-h-0 p-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
+        
+        {/* FOTO DE PERFIL INTERACTIVA */}
+        <div className="flex flex-col items-center justify-center shrink-0">
+          <div className="w-24 h-24 rounded-full bg-[#8d9b70] text-white flex items-center justify-center text-4xl font-bold shadow-md overflow-hidden relative group cursor-pointer border-4 border-white">
+            {avatarPreview ? (
+              <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              (profileForm.nombre.charAt(0) || "U").toUpperCase()
+            )}
+            
+            <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <i className="bi bi-camera-fill text-xl text-white"></i>
+            </div>
+            
+            <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} />
+          </div>
+          <p className="text-[10px] text-[#8C867E] !mt-2 uppercase tracking-widest font-bold">Cambiar Foto</p>
         </div>
         
-        <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-bold text-[#4A453E] border-b border-[#E8E4DE] pb-1 m-0">Seguridad de la Cuenta</h3>
+        {/* DATOS PERSONALES */}
+        <div className="flex flex-col gap-4 shrink-0">
+          <h3 className="text-sm font-bold text-[#4A453E] border-b border-[#E8E4DE] pb-1 m-0">Datos Personales</h3>
+          
+          <div className="flex gap-3">
+            <div className="flex flex-col gap-1 w-1/2">
+              <label className="text-xs font-semibold text-[#8C867E] ml-1">Nombre</label>
+              <input type="text" required value={profileForm.nombre} onChange={(e) => setProfileForm({...profileForm, nombre: e.target.value})} className="w-full !px-4 !py-3 rounded-xl border border-[#E8E4DE] outline-none focus:border-[#8d9b70] text-[#4A453E] bg-white transition-colors" />
+            </div>
+            <div className="flex flex-col gap-1 w-1/2">
+              <label className="text-xs font-semibold text-[#8C867E] ml-1">Usuario</label>
+              <div className="relative">
+                <i className="bi bi-at absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" required value={profileForm.usuario} onChange={(e) => setProfileForm({...profileForm, usuario: e.target.value})} className="w-full !pl-9 !pr-4 !py-3 rounded-xl border border-[#E8E4DE] outline-none focus:border-[#8d9b70] text-[#4A453E] bg-white transition-colors" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-[#8C867E] ml-1">Correo Electrónico</label>
+            <div className="relative">
+              <i className="bi bi-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+              <input type="email" required value={profileForm.email} onChange={(e) => setProfileForm({...profileForm, email: e.target.value})} className="w-full !pl-11 !pr-4 !py-3 rounded-xl border border-[#E8E4DE] outline-none focus:border-[#8d9b70] text-[#4A453E] bg-white transition-colors" />
+            </div>
+          </div>
+        </div>
+        
+        {/* SEGURIDAD */}
+        <div className="flex flex-col gap-4 shrink-0">
+          <h3 className="text-sm font-bold text-[#4A453E] border-b border-[#E8E4DE] pb-1 m-0 flex justify-between items-center">
+            Cambiar Contraseña
+            <span className="text-[10px] font-bold tracking-widest text-[#8C867E] uppercase bg-[#E8E4DE] px-2 py-0.5 rounded-md">Opcional</span>
+          </h3>
+          
           <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-[#8C867E] ml-1">Contraseña Actual</label>
-            <input type="password" required={profileForm.newPassword !== ''} value={profileForm.currentPassword} onChange={(e) => setProfileForm({...profileForm, currentPassword: e.target.value})} className="p-3 rounded-xl border border-[#E8E4DE] bg-white outline-none focus:border-[#8B9467] text-[#4A453E]" />
+            <input type="password" required={profileForm.newPassword !== ''} value={profileForm.currentPassword} onChange={(e) => setProfileForm({...profileForm, currentPassword: e.target.value})} className="w-full !px-4 !py-3 rounded-xl border border-[#E8E4DE] bg-white outline-none focus:border-[#8d9b70] text-[#4A453E] transition-colors" placeholder="••••••••" />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <div className="flex flex-col gap-1 w-1/2">
               <label className="text-xs font-semibold text-[#8C867E] ml-1">Nueva Contraseña</label>
-              <input type="password" value={profileForm.newPassword} onChange={(e) => setProfileForm({...profileForm, newPassword: e.target.value})} className="p-3 rounded-xl border border-[#E8E4DE] bg-white outline-none focus:border-[#8B9467] text-[#4A453E]" />
+              <input type="password" value={profileForm.newPassword} onChange={(e) => setProfileForm({...profileForm, newPassword: e.target.value})} className="w-full !px-4 !py-3 rounded-xl border border-[#E8E4DE] bg-white outline-none focus:border-[#8d9b70] text-[#4A453E] transition-colors" placeholder="Nueva..." />
             </div>
             <div className="flex flex-col gap-1 w-1/2">
               <label className="text-xs font-semibold text-[#8C867E] ml-1">Confirmar</label>
-              <input type="password" value={profileForm.confirmPassword} onChange={(e) => setProfileForm({...profileForm, confirmPassword: e.target.value})} className="p-3 rounded-xl border border-[#E8E4DE] bg-white outline-none focus:border-[#8B9467] text-[#4A453E]" />
+              <input type="password" value={profileForm.confirmPassword} onChange={(e) => setProfileForm({...profileForm, confirmPassword: e.target.value})} className="w-full !px-4 !py-3 rounded-xl border border-[#E8E4DE] bg-white outline-none focus:border-[#8d9b70] text-[#4A453E] transition-colors" placeholder="Confirmar..." />
             </div>
           </div>
         </div>
-        <button type="submit" disabled={isLoading} className="mt-2 w-full bg-[#8B9467] text-white font-bold py-3.5 rounded-xl hover:bg-[#7A8258] disabled:bg-gray-400 transition-colors border-none cursor-pointer">
-          <i className="bi bi-shield-check"></i> Actualizar Seguridad
-        </button>
+        
+        <div className="mt-auto shrink-0 !pt-4 !pb-2">
+          <button 
+            type="submit" 
+            disabled={isLoading} 
+            className="w-full !bg-[#8d9b70] !text-white font-bold py-3.5 rounded-xl transition-all duration-300 hover:!bg-[#7c8b61] hover:scale-[1.02] hover:shadow-lg active:scale-95 disabled:!bg-gray-400 disabled:!opacity-50 disabled:cursor-not-allowed border-none cursor-pointer flex items-center justify-center gap-2"
+          >
+            <i className="bi bi-person-check-fill text-lg"></i> 
+            Guardar Cambios
+          </button>
+        </div>
       </form>
-    </>
+    </div>
   );
 
   const renderBusinessView = () => (
-    <>
-      <TopBar title="Datos del Negocio" />
+    <div className="flex flex-col h-full w-full">
+      <TopBar title="Redes Sociales" />
       <StatusAlerts />
-      <form onSubmit={handleSaveBusiness} className="p-6 flex flex-col gap-4 overflow-y-auto">
-        <div className="flex gap-3">
-          <div className="flex flex-col gap-1 w-2/3">
-            <label className="text-xs font-semibold text-[#8C867E] ml-1">Nombre</label>
-            <input type="text" required value={businessForm.storeName} onChange={(e) => setBusinessForm({...businessForm, storeName: e.target.value})} className="p-3 rounded-xl border border-[#E8E4DE] outline-none focus:border-[#8B9467]" />
-          </div>
-          <div className="flex flex-col gap-1 w-1/3">
-            <label className="text-xs font-semibold text-[#8C867E] ml-1">Moneda</label>
-            <select value={businessForm.currency} onChange={(e) => setBusinessForm({...businessForm, currency: e.target.value})} className="p-3 rounded-xl border border-[#E8E4DE] bg-white outline-none focus:border-[#8B9467]">
-              <option value="MXN">MXN</option>
-              <option value="USD">USD</option>
-            </select>
+      <form onSubmit={handleSaveBusiness} className="flex-1 min-h-0 !p-6 flex flex-col gap-5 overflow-y-auto custom-scrollbar">
+        
+        <div className="flex flex-col gap-1 shrink-0">
+          <label className="text-xs font-semibold text-[#8C867E] ml-1">Página de Facebook</label>
+          <div className="relative">
+            <i className="bi bi-facebook absolute left-4 top-1/2 -translate-y-1/2 text-[#1877F2] text-lg pointer-events-none"></i>
+            <input type="text" placeholder="https://facebook.com/tupagina" value={businessForm.facebook} onChange={(e) => setBusinessForm({...businessForm, facebook: e.target.value})} className="w-full !pl-12 !pr-4 !py-3.5 rounded-xl border border-[#E8E4DE] outline-none focus:border-[#8B9467] text-[#4A453E] bg-white transition-colors" />
           </div>
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-[#8C867E] ml-1">Teléfono o WhatsApp</label>
-          <input type="text" value={businessForm.phone} onChange={(e) => setBusinessForm({...businessForm, phone: e.target.value})} className="p-3 rounded-xl border border-[#E8E4DE] outline-none focus:border-[#8B9467]" />
+
+        <div className="flex flex-col gap-1 shrink-0">
+          <label className="text-xs font-semibold text-[#8C867E] ml-1">Perfil de Instagram</label>
+          <div className="relative">
+            <i className="bi bi-instagram absolute left-4 top-1/2 -translate-y-1/2 text-[#E4405F] text-lg pointer-events-none"></i>
+            <input type="text" placeholder="https://instagram.com/tuperfil" value={businessForm.instagram} onChange={(e) => setBusinessForm({...businessForm, instagram: e.target.value})} className="w-full !pl-12 !pr-4 !py-3.5 rounded-xl border border-[#E8E4DE] outline-none focus:border-[#8B9467] text-[#4A453E] bg-white transition-colors" />
+          </div>
         </div>
-        <button type="submit" className="mt-2 w-full bg-[#8B9467] text-white font-bold py-3.5 rounded-xl hover:bg-[#7A8258] border-none cursor-pointer">
-          Guardar Configuración
-        </button>
+
+        <div className="mt-auto shrink-0 pt-4">
+          <button 
+            type="submit" 
+            className="w-full !bg-[#8d9b70] !text-white font-bold py-3.5 rounded-xl transition-all duration-300 hover:!bg-[#7c8b61] hover:scale-[1.02] hover:shadow-lg active:scale-95 border-none cursor-pointer flex items-center justify-center gap-2"
+          >
+            <i className="bi bi-check2-circle text-lg"></i>
+            Guardar Redes Sociales
+          </button>
+        </div>
       </form>
-    </>
+    </div>
   );
 
   const renderExportView = () => (
-    <>
+    <div className="flex flex-col h-full w-full">
       <TopBar title="Exportar Bases de Datos" />
       <StatusAlerts />
-      <div className="p-6 flex flex-col gap-4 overflow-y-auto">
+      <div className="flex-1 min-h-0 p-6 overflow-y-auto custom-scrollbar">
         <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => handleExportData('usuarios')} disabled={isLoading} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-[#E8E4DE] bg-white hover:bg-[#F9F7F2] text-[#4A453E] cursor-pointer">
+          <button onClick={() => handleExportData('usuarios')} disabled={isLoading} className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-[#E8E4DE] bg-white hover:bg-[#F9F7F2] text-[#4A453E] cursor-pointer transition-colors">
             <i className="bi bi-people text-2xl text-[#8B9467]"></i><span className="font-semibold text-sm">Usuarios</span>
           </button>
-          <button onClick={() => handleExportData('clientes')} disabled={isLoading} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-[#E8E4DE] bg-white hover:bg-[#F9F7F2] text-[#4A453E] cursor-pointer">
+          <button onClick={() => handleExportData('clientes')} disabled={isLoading} className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-[#E8E4DE] bg-white hover:bg-[#F9F7F2] text-[#4A453E] cursor-pointer transition-colors">
             <i className="bi bi-person-vcard text-2xl text-[#8B9467]"></i><span className="font-semibold text-sm">Clientes</span>
           </button>
-          <button onClick={() => handleExportData('productos')} disabled={isLoading} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-[#E8E4DE] bg-white hover:bg-[#F9F7F2] text-[#4A453E] cursor-pointer">
+          <button onClick={() => handleExportData('productos')} disabled={isLoading} className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-[#E8E4DE] bg-white hover:bg-[#F9F7F2] text-[#4A453E] cursor-pointer transition-colors">
             <i className="bi bi-bag text-2xl text-[#8B9467]"></i><span className="font-semibold text-sm">Productos</span>
           </button>
-          <button onClick={() => handleExportData('proveedores')} disabled={isLoading} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-[#E8E4DE] bg-white hover:bg-[#F9F7F2] text-[#4A453E] cursor-pointer">
+          <button onClick={() => handleExportData('proveedores')} disabled={isLoading} className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-[#E8E4DE] bg-white hover:bg-[#F9F7F2] text-[#4A453E] cursor-pointer transition-colors">
             <i className="bi bi-truck text-2xl text-[#8B9467]"></i><span className="font-semibold text-sm">Proveedores</span>
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 
   const renderSupportView = () => (
-    <>
+    <div className="flex flex-col h-full w-full">
       <TopBar title="Ayuda y Soporte" />
-      <div className="p-6 flex flex-col gap-5 overflow-y-auto items-center text-center">
-        <div className="w-16 h-16 rounded-full bg-[#EEF2E7] text-[#8B9467] flex items-center justify-center text-3xl mb-2"><i className="bi bi-headset"></i></div>
-        <div>
+      <div className="flex-1 min-h-0 p-6 flex flex-col gap-5 overflow-y-auto custom-scrollbar items-center text-center">
+        <div className="w-16 h-16 shrink-0 rounded-full bg-[#EEF2E7] text-[#8B9467] flex items-center justify-center text-3xl mb-2"><i className="bi bi-headset"></i></div>
+        <div className="shrink-0">
           <h3 className="text-[#4A453E] font-bold text-lg m-0 mb-1">¿Necesitas ayuda?</h3>
         </div>
-        <div className="w-full flex flex-col gap-3 mt-2">
-          <a href="https://wa.me/524621614240" target="_blank" rel="noreferrer" className="w-full bg-[#25D366] text-white font-bold py-3.5 rounded-xl hover:bg-[#20bd5a] transition-colors border-none cursor-pointer flex items-center justify-center gap-2 no-underline">
-            <i className="bi bi-whatsapp text-lg"></i> Contactar por WhatsApp
+        <div className="w-full shrink-0 flex flex-col gap-3 mt-2">
+          <a href="https://wa.me/524621614240" target="_blank" rel="noreferrer" className="w-full bg-[#25D366] !text-white font-bold py-3.5 rounded-xl hover:bg-[#20bd5a] transition-all duration-300 hover:scale-[1.02] hover:shadow-lg active:scale-95 border-none cursor-pointer flex items-center justify-center gap-2 no-underline">
+            <i className="bi bi-whatsapp text-xl"></i> Contactar por WhatsApp
           </a>
         </div>
       </div>
-    </>
+    </div>
   );
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 transition-opacity font-['Inter',sans-serif]">
-      <div className="bg-[#F9F7F2] sm:rounded-[2rem] rounded-t-[2rem] shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in flex flex-col max-h-[90vh]">
+    <dialog ref={dialogRef} className="modal modal-bottom sm:modal-middle backdrop-blur-sm" data-theme="light" onCancel={onClose}>
+      <div className="modal-box !bg-[#F9F7F2] sm:rounded-[2rem] !p-0 shadow-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[90vh] font-['Inter',sans-serif]">
         {activeView === 'main' && renderMainView()}
         {activeView === 'profile' && renderProfileView()}
         {activeView === 'business' && renderBusinessView()}
         {activeView === 'export' && renderExportView()}
         {activeView === 'support' && renderSupportView()}
       </div>
-    </div>
+
+      <form method="dialog" className="modal-backdrop">
+        <button onClick={onClose}>close</button>
+      </form>
+    </dialog>
   );
 }
