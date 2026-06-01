@@ -1,7 +1,7 @@
 import { useClients } from "../../hooks/useClients";
 import { useState } from "react";
 import ClientFormModal from "../../components/ui/ClientFormModal";
-import {Can }from "../../components/Can.jsx";
+import {Can }from "../../components/can.jsx";
 import { includes } from "zod";
 import  ConfirmAlert from "../../components/ui/Alert.jsx"; 
 
