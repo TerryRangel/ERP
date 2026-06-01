@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { suppliersService } from '../../services/suppliersService';
 import SupplierFormModal from './SupplierFormModal';
 import { Can } from '../../components/can';
+import ConfirmAlert from '../../components/ui/Alert.jsx';
 
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState([]);
@@ -366,20 +367,21 @@ export default function SuppliersPage() {
       />
 
       {/* MODAL DELETE */}
-      {supplierToDelete && (
-        <div className="modal modal-open">
-          <div className="modal-box rounded-3xl">
-            <h3 className="font-black text-2xl text-gray-800">Eliminar proveedor</h3>
-            <p className="py-4 text-gray-500">
-              ¿Deseas eliminar a <strong>{supplierToDelete.nombre || supplierToDelete.name}</strong>? Esta acción no se puede deshacer.
-            </p>
-            <div className="modal-action">
-              <button className="btn rounded-2xl" onClick={() => setSupplierToDelete(null)}>Cancelar</button>
-              <button className="btn btn-error rounded-2xl" onClick={handleDelete}>Eliminar</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmAlert
+        isOpen={!!supplierToDelete}
+        onClose={() => setSupplierToDelete(null)}
+        onConfirm={async () => {
+          if (supplierToDelete) {
+            await handleDelete(supplierToDelete.id);
+            setSupplierToDelete(null);
+          }
+        }}
+        title="Eliminar proveedor"
+        message={`¿Deseas eliminar a ${supplierToDelete?.nombre || supplierToDelete?.name}? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+      />
     </div>
   );
 }

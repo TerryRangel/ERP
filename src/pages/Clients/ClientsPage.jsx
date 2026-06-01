@@ -3,6 +3,7 @@ import { useState } from "react";
 import ClientFormModal from "../../components/ui/ClientFormModal";
 import {Can }from "../../components/Can.jsx";
 import { includes } from "zod";
+import  ConfirmAlert from "../../components/ui/Alert.jsx"; 
 
 export default function ClientsPage() {
   const { clients, meta, loading, setFilters, createClient, updateClient, deleteClient, toggleClient } = useClients();
@@ -383,43 +384,21 @@ export default function ClientsPage() {
 
       {/* MODAL DELETE */}
       {clientToDelete && (
-        <div className="modal modal-open">
-
-          <div className="modal-box rounded-3xl">
-
-            <h3 className="font-black text-2xl text-gray-800">
-              Eliminar cliente
-            </h3>
-
-            <p className="py-4 text-gray-500">
-              ¿Deseas eliminar a{" "}
-              <strong>{clientToDelete.nombre}</strong>?
-            </p>
-
-            <div className="modal-action">
-
-              <button
-                className="btn rounded-2xl"
-                onClick={() => setClientToDelete(null)}
-              >
-                Cancelar
-              </button>
-
-              <button
-                className="btn btn-error rounded-2xl"
-                onClick={async () => {
-                  await deleteClient(clientToDelete.id);
-                  setClientToDelete(null);
-                }}
-              >
-                Eliminar
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
+        <ConfirmAlert
+        isOpen={!!clientToDelete}
+        onClose={() => setClientToDelete(null)}
+        onConfirm={async () => {
+          if (clientToDelete) {
+            await deleteClient(clientToDelete.id);
+            setClientToDelete(null);
+          }
+        }}
+        title="Eliminar cliente"
+        message={`¿Deseas eliminar a ${clientToDelete?.nombre}? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+      />
       )}
   </div>
 );
