@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
 import ConfirmAlert from "../../components/ui/Alert"; 
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -33,7 +33,7 @@ export default function SupplierFormModal({ isOpen, onClose, onSave, editData })
       if (editData) {
         setFormData({
           ...editData,
-          activo: editData.activo !== false // Por defecto true si no viene definido
+          activo: editData.activo !== false 
         });
       } else {
         setFormData({ nombre: "", rfc: "", email: "", telefono: "", contacto: "", direccion: "", activo: true });
@@ -59,7 +59,6 @@ export default function SupplierFormModal({ isOpen, onClose, onSave, editData })
     setLoading(true);
     try {
       await onSave(formData);
-      // El onClose lo maneja la página padre en caso de éxito
     } catch (error) {
       setAlertConfig({
         isOpen: true,
@@ -74,7 +73,6 @@ export default function SupplierFormModal({ isOpen, onClose, onSave, editData })
 
   const closeAlert = () => setAlertConfig({ ...alertConfig, isOpen: false });
 
-  // Clase base idéntica a la de Clientes
   const inputBaseClass = "w-full !bg-[#f8f8f6] border-none rounded-full py-3.5 !pl-12 pr-4 !text-[#2D2D2D] text-sm focus:ring-2 focus:ring-[#8d9b70]/30 outline-none transition-all placeholder:text-gray-400 disabled:opacity-60 disabled:cursor-not-allowed";
 
   return (
