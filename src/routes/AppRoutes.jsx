@@ -8,9 +8,10 @@ import AuditPage from '../pages/Audit/AuditPage';
 import SuppliersPage from '../pages/Suppliers/SuppliersPage';
 import ProductsPage from '../pages/Products/ProductsPage';
 import ClientsPage from '../pages/Clients/ClientsPage'; 
-import NoAutorizado from '../components/layout/nopermission';
 import InventoryPage from '../pages/Inventory/InventoryPage';
 import ReceptionsPage from '../pages/ReceptionPage/ReceptionPage.jsx';
+import Unauthorized from '../pages/Auth/Unauthorized.jsx';
+import ResetPassword from '../pages/Auth/ResetPassword.jsx';
 
 export default function AppRoutes() {
   return (
@@ -18,6 +19,7 @@ export default function AppRoutes() {
       <Routes>
         {/* Ruta pública */}
         <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         
         {/* Rutas protegidas */}
         <Route element={<ProtectedRoute />}>
@@ -88,7 +90,7 @@ export default function AppRoutes() {
           />
           {/* ------------------------------------ */}
 
-          <Route path="/no-autorizado" element={<NoAutorizado />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
 
           {/* El comodín (*) SIEMPRE debe ir al final de la lista */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

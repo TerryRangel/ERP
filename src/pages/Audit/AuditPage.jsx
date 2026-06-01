@@ -14,7 +14,6 @@ export default function AuditPage() {
   const [moduleFilter, setModuleFilter] = useState('ALL');
   const [actionFilter, setActionFilter] = useState('ALL');
 
-  // Nuevo estado para controlar el modal de detalles
   const [selectedLog, setSelectedLog] = useState(null);
 
   const { setLatestLogs } = useAudit();
@@ -32,8 +31,6 @@ export default function AuditPage() {
       );
 
       setLogs(sortedData);
-
-      // Navbar logs
       setLatestLogs(sortedData.slice(0, 3));
 
     } catch (err) {
@@ -319,8 +316,7 @@ export default function AuditPage() {
                   <th className="text-left py-5 text-xs uppercase tracking-widest text-gray-400 font-black">Evento</th>
                   <th className="text-left py-5 text-xs uppercase tracking-widest text-gray-400 font-black">Recurso</th>
                   <th className="text-left py-5 text-xs uppercase tracking-widest text-gray-400 font-black">Usuario</th>
-                  {/* SE ELIMINÓ LA COLUMNA DETALLE AQUÍ */}
-                  <th className="text-center pr-10 py-5 text-xs uppercase tracking-widest text-gray-400 font-black">Acción</th>
+                  <th className="text-center py-5 text-xs uppercase tracking-widest text-gray-400 font-black">Acción</th>
                 </tr>
               </thead>
 
@@ -362,16 +358,17 @@ export default function AuditPage() {
                         <span className="font-medium text-gray-700">{log.usuario || 'Sistema'}</span>
                       </td>
 
-                      {/* SE ELIMINÓ EL TD DEL DETALLE AQUÍ */}
-
-                      <td className="pr-10 text-center">
-                        <button
-                          onClick={() => setSelectedLog(log)}
-                          className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all mx-auto"
-                          title="Ver detalles completos"
-                        >
-                          <i className="bi bi-eye text-lg"></i>
-                        </button>
+                      <td className="py-6">
+                        {/* CONTENEDOR FLEX CENTRADO PERFECTO */}
+                        <div className="flex items-center justify-center">
+                          <button
+                            onClick={() => setSelectedLog(log)}
+                            className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"
+                            title="Ver detalles completos"
+                          >
+                            <i className="bi bi-eye text-lg"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -382,13 +379,13 @@ export default function AuditPage() {
         </div>
       </div>
 
-      {/* MODAL DE DETALLES */}
+      {/* MODAL DE DETALLES*/}
       {selectedLog && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col animate-[fadeIn_.2s_ease]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 sm:p-6">
+          
+          <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col animate-[fadeIn_.2s_ease]">
             
-            {/* Header del Modal */}
-            <div className="px-8 py-6 border-b border-[#EEF2E7] flex justify-between items-center bg-[#FAFBF8]">
+            <div className="shrink-0 px-8 py-6 border-b border-[#EEF2E7] flex justify-between items-center bg-[#FAFBF8]">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-[#E8F0DD] text-[#5F6F52] flex items-center justify-center shadow-sm border border-[#D7E4C0]">
                   <i className="bi bi-file-earmark-text text-xl"></i>
@@ -408,11 +405,9 @@ export default function AuditPage() {
               </button>
             </div>
 
-            {/* Cuerpo del Modal */}
-            <div className="p-8 overflow-y-auto max-h-[60vh] custom-scrollbar">
+            <div className="flex-1 min-h-0 p-8 overflow-y-auto custom-scrollbar">
               <div className="space-y-6">
                 
-                {/* Resumen */}
                 <div className="grid grid-cols-2 gap-6 bg-[#F4F6F0] p-6 rounded-3xl border border-[#E5EBDD]">
                   <div>
                     <span className="block text-[10px] font-bold text-[#7E8B63] uppercase tracking-widest mb-1">Usuario / Actor</span>
@@ -456,7 +451,6 @@ export default function AuditPage() {
                   </div>
                 )}
 
-                {/* Detalles Técnicos JSON */}
                 <div>
                   <span className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                     <i className="bi bi-code-slash"></i>
@@ -471,21 +465,9 @@ export default function AuditPage() {
 
               </div>
             </div>
-
-            {/* Footer del Modal */}
-            <div className="px-8 py-5 border-t border-[#EEF2E7] bg-white flex justify-end">
-              <button
-                onClick={() => setSelectedLog(null)}
-                className="px-8 py-3 rounded-2xl bg-[#1F2937] text-white font-bold hover:bg-black transition-all shadow-lg flex items-center gap-2"
-              >
-                <i className="bi bi-check-circle-fill"></i>
-                Cerrar
-              </button>
-            </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }
