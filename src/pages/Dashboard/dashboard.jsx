@@ -2,6 +2,7 @@ import { useDashboard } from "../../hooks/useDashboard";
 import { getAuditLogs } from "../../services/auditService";
 import { useEffect, useState } from "react";
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 
 const metrics = [
   { key: "totalUsers",     label: "Total Usuarios",   sublabel: "Usuarios registrados" },
@@ -120,20 +121,80 @@ export default function Dashboard() {
   const { data } = useDashboard();
   const [recentLogs, setRecentLogs] = useState([]);
   const [selectedLog, setSelectedLog] = useState(null);
+  const [allLogs, setAllLogs] = useState([]);
+
+  
+  const totalEvents = allLogs.length;
+
+
+  const createEvents = recentLogs.filter(log => { const action = (log.action || "").toUpperCase()
+    return (
+      action.includes("CREA") || 
+      action.includes("CREATE") || 
+      action.includes("POST")
+    )
+  }).length;
+
+  const updateEvents = allLogs.filter(log => { 
+    const action = (log.action || "").toUpperCase()
+
+    return (
+      action.includes("UPDATE") ||
+      action.includes("EDIT") ||
+      action.includes("MODIFIC") ||
+      action.includes("ACTUALIZ")
+    )
+  }).length;
+
+  const deleteEvents = allLogs.filter(log => { 
+    const action = (log.action || "").toUpperCase()
+
+    return (
+      action.includes("DELETE") ||
+      action.includes("ELIMIN")
+    )
+  }).length;  
+
+  const actionData = [
+    { name: 'Creaciones', value: createEvents },
+    { name: 'Actualizaciones', value: updateEvents },
+    { name: 'Eliminaciones', value: deleteEvents },
+  ]
+
+  const moduleCount = {};
+
+  recentLogs.forEach(log => {
+    const resource = log.resource || "Sistema";
+    moduleCount[resource] = (moduleCount[resource] || 0) + 1;
+  });
+
+  const moduleData = Object.entries(moduleCount).map(([name, value]) => ({ name, value }));
+
+  const COLORS = ['#8B9467','#A3AD85', '#D97706', '#DC2626', '#6366F1'];  
+
+
 
   useEffect(() => { loadRecentLogs(); }, []);
 
   const loadRecentLogs = async () => {
     try {
-      const data = await getAuditLogs();
-      const sorted = (data.items || data || [])
-        .sort((a, b) => new Date(b.createdAt || b.fecha) - new Date(a.createdAt || a.fecha))
-        .slice(0, 3);
-      setRecentLogs(sorted);
-    } catch (err) {
-      console.error(err);
+      const response = await getAuditLogs()
+      console.log("AUDIT LOGS:", response)
+
+      const logs = Array.isArray(response)
+      ? response
+      : response.items || [];
+
+      const sorted = logs.sort(
+        (a,b) => 
+          new Date(b.createdAt || b.fecha) - new Date(a.createdAt || a.fecha)
+      )
+      setAllLogs(sorted)
+      setRecentLogs(sorted.slice(0, 3));
+    } catch (error) {
+      console.error(error)
     }
-  };
+  } 
 
   return (
     <>
@@ -169,6 +230,308 @@ export default function Dashboard() {
           {metrics.map((m) => (
             <MetricCard key={m.key} label={m.label} sublabel={m.sublabel} value={data?.[m.key]} />
           ))}
+        </div>
+
+        {/* ESTADÍSTICAS DE ACTIVIDAD */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: "20px",
+            marginBottom: "40px",
+          }}
+        >
+          
+          {/* TOTAL */}
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              border: "1px solid #E8E4DE",
+              borderRadius: "24px",
+              padding: "24px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+            }}
+          >
+            <div
+              style={{
+                width: "50px",
+                height: "50px",
+                borderRadius: "16px",
+                backgroundColor: "#EEF2E7",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: "18px",
+              }}
+            >
+              <i className="bi bi-activity" style={{ fontSize: "22px", color: "#718355" }}></i>
+            </div>
+
+            <div style={{ fontSize: "14px", color: "#8C867E", fontWeight: "600" }}>
+              Eventos Totales
+            </div>
+
+            <div
+              style={{
+                fontSize: "40px",
+                fontWeight: "700",
+                color: "#4A453E",
+                marginTop: "8px",
+              }}
+            >
+              {totalEvents}
+            </div>
+          </div>
+
+          {/* CREACIONES */}
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              border: "1px solid #E8E4DE",
+              borderRadius: "24px",
+              padding: "24px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+            }}
+          >
+            <div
+              style={{
+                width: "50px",
+                height: "50px",
+                borderRadius: "16px",
+                backgroundColor: "#ECFDF3",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: "18px",
+              }}
+            >
+              <i className="bi bi-plus-circle-fill" style={{ fontSize: "22px", color: "#16A34A" }}></i>
+            </div>
+
+            <div style={{ fontSize: "14px", color: "#8C867E", fontWeight: "600" }}>
+              Creaciones
+            </div>
+
+            <div
+              style={{
+                fontSize: "40px",
+                fontWeight: "700",
+                color: "#4A453E",
+                marginTop: "8px",
+              }}
+            >
+              {createEvents}
+            </div>
+          </div>
+
+          {/* UPDATES */}
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              border: "1px solid #E8E4DE",
+              borderRadius: "24px",
+              padding: "24px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+            }}
+          >
+            <div
+              style={{
+                width: "50px",
+                height: "50px",
+                borderRadius: "16px",
+                backgroundColor: "#FEF3C7",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: "18px",
+              }}
+            >
+              <i className="bi bi-arrow-repeat" style={{ fontSize: "22px", color: "#D97706" }}></i>
+            </div>
+
+            <div style={{ fontSize: "14px", color: "#8C867E", fontWeight: "600" }}>
+              Actualizaciones
+            </div>
+
+            <div
+              style={{
+                fontSize: "40px",
+                fontWeight: "700",
+                color: "#4A453E",
+                marginTop: "8px",
+              }}
+            >
+              {updateEvents}
+            </div>
+          </div>
+
+          {/* DELETE */}
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              border: "1px solid #E8E4DE",
+              borderRadius: "24px",
+              padding: "24px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+            }}
+          >
+            <div
+              style={{
+                width: "50px",
+                height: "50px",
+                borderRadius: "16px",
+                backgroundColor: "#FEE2E2",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: "18px",
+              }}
+            >
+              <i className="bi bi-trash-fill" style={{ fontSize: "22px", color: "#DC2626" }}></i>
+            </div>
+
+            <div style={{ fontSize: "14px", color: "#8C867E", fontWeight: "600" }}>
+              Eliminaciones
+            </div>
+
+            <div
+              style={{
+                fontSize: "40px",
+                fontWeight: "700",
+                color: "#4A453E",
+                marginTop: "8px",
+              }}
+            >
+              {deleteEvents}
+            </div>
+          </div>
+
+        </div>
+
+        {/* GRÁFICAS */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
+            gap: "24px",
+            marginBottom: "40px",
+          }}
+        >
+
+          {/* BAR CHART */}
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: "24px",
+              padding: "24px",
+              border: "1px solid #E8E4DE",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+            }}
+          >
+            <div style={{ marginBottom: "20px" }}>
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: "22px",
+                  fontFamily: "'Lora', serif",
+                  color: "#4A453E",
+                }}
+              >
+                Actividad del Sistema
+              </h3>
+
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "#8C867E",
+                  marginTop: "6px",
+                }}
+              >
+                Distribución de acciones recientes
+              </p>
+            </div>
+
+            <div style={{ width: "100%", height: 300 }}>
+              <ResponsiveContainer>
+                <BarChart data={actionData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+
+                  <XAxis dataKey="name" />
+
+                  <YAxis />
+
+                  <Tooltip />
+
+                  <Bar
+                    dataKey="value"
+                    radius={[10, 10, 0, 0]}
+                    fill="#8B9467"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* PIE CHART */}
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: "24px",
+              padding: "24px",
+              border: "1px solid #E8E4DE",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+            }}
+          >
+            <div style={{ marginBottom: "20px" }}>
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: "22px",
+                  fontFamily: "'Lora', serif",
+                  color: "#4A453E",
+                }}
+              >
+                Eventos por Módulo
+              </h3>
+
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "#8C867E",
+                  marginTop: "6px",
+                }}
+              >
+                Recursos más utilizados
+              </p>
+            </div>
+
+            <div style={{ width: "100%", height: 300 }}>
+              <ResponsiveContainer>
+                <PieChart>
+
+                  <Pie
+                    data={moduleData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    dataKey="value"
+                    label
+                  >
+                    {moduleData.map((entry, index) => (
+                      <Cell
+                        key={index}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+
+                  <Tooltip />
+
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
         </div>
 
         {/* ACTIVIDAD RECIENTE */}
