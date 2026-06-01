@@ -88,8 +88,8 @@ export default function SupplierFormModal({ isOpen, onClose, onSave, editData })
         onClose={closeAlert}
       />
 
-      <dialog ref={dialogRef} className="modal modal-bottom sm:modal-middle backdrop-blur-sm" data-theme="light" onCancel={onClose}>
-        <div className="modal-box w-11/12 !max-w-4xl !bg-white rounded-3xl p-8 sm:p-10 shadow-2xl relative !text-[#1F2937] overflow-y-auto custom-scrollbar">
+      <dialog ref={dialogRef} className="modal modal-middle backdrop-blur-sm" data-theme="light" onCancel={onClose}>
+        <div className="modal-box w-[calc(100%-32px)] sm:w-11/12 !max-w-4xl !bg-white rounded-3xl p-6 sm:p-10 shadow-2xl relative !text-[#1F2937] overflow-y-auto !max-h-[90dvh]">
           
           <button onClick={onClose} className="absolute top-6 right-6 text-gray-400 hover:text-gray-700 transition-colors" disabled={loading}>
             <i className="bi bi-x-lg text-xl"></i>
